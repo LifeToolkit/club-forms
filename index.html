@@ -1,0 +1,1222 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#14052e">
+  <title>معاينة تصاميم التسجيل · نادي التسويق</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Markazi+Text:wght@600;700&family=Noto+Kufi+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* خط العناوين في الدليل: Lyon Arabic. إذا توفرت ملفاته في مجلد fonts أو على الجهاز يُستخدم تلقائياً، وإلا Markazi Text */
+    @font-face {
+      font-family: "Club Display";
+      src: local("Lyon Arabic Display Bold"), local("LyonArabicDisplay-Bold"),
+           url("fonts/LyonArabicDisplay-Bold.woff2") format("woff2");
+      font-weight: 700;
+      font-display: swap;
+    }
+
+    :root {
+      /* ألوان الهوية */
+      --deep: #33007E;
+      --purple: #6D0DD6;
+      --lavender: #CAB8E5;
+      --orange: #F26D24;
+      --teal: #004950;
+      --yellow: #FFE286;
+      --sky: #A9DEEF;
+      --paper: #F1F2F4;
+      --ribbon-ink: #483B70;
+
+      /* أدوار مشتقة */
+      --ink: #1d0b3f;
+      --muted: #5c5373;
+      --line: #968ab0;
+      --error-light: #B13E0A;
+      --canvas: #14052e;
+
+      --font-display: "Club Display", "Markazi Text", serif;
+      --font-body: "Noto Kufi Arabic", system-ui, sans-serif;
+      --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--canvas);
+      color: #ece4fa;
+      min-height: 100vh;
+      display: flex; flex-direction: column; align-items: center;
+      padding: 24px 16px 48px;
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    ::selection { background: var(--purple); color: #fff; }
+
+    .sr-only {
+      position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+      overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+    }
+    .ico {
+      width: 18px; height: 18px; flex: none;
+      fill: none; stroke: currentColor; stroke-width: 2;
+      stroke-linecap: round; stroke-linejoin: round;
+    }
+
+    /* ========================================================
+       أداة المعاينة: الشعار + التبديل بين التصاميم
+    ======================================================== */
+    .harness-head {
+      width: 100%; max-width: 560px;
+      display: flex; align-items: center; justify-content: space-between; gap: 16px;
+      margin-bottom: 18px;
+    }
+    .harness-head .lockup-h { height: 40px; width: auto; --mark: var(--lavender); --wordmark: var(--lavender); }
+    .harness-title { font-size: 13px; color: #c9bce3; text-align: left; }
+
+    .preview-nav {
+      position: sticky; top: 10px; z-index: 100;
+      display: flex; gap: 4px; padding: 5px;
+      max-width: 100%; overflow-x: auto; scrollbar-width: none;
+      background: rgba(20, 5, 46, 0.92);
+      border: 1px solid rgba(202, 184, 229, 0.22);
+      border-radius: 999px;
+      margin-bottom: 14px;
+      box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.6);
+    }
+    .preview-nav::-webkit-scrollbar { display: none; }
+    .nav-btn {
+      background: transparent; border: 0; color: var(--lavender);
+      padding: 8px 16px; min-height: 40px; border-radius: 999px;
+      font-size: 14px; font-weight: 600; white-space: nowrap;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+    .nav-btn:hover { background: rgba(202, 184, 229, 0.12); color: #fff; }
+    .nav-btn.active { background: var(--lavender); color: var(--deep); }
+    .nav-btn:focus-visible, .seg button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+
+    .state-theme {
+      display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px;
+      font-size: 13px; color: #c9bce3; margin-bottom: 16px;
+    }
+    .seg {
+      display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px;
+      border: 1px solid rgba(202, 184, 229, 0.25);
+    }
+    .seg button {
+      border: 0; background: transparent; color: var(--lavender);
+      font-size: 13px; font-weight: 600; padding: 6px 12px; min-height: 34px; border-radius: 999px;
+    }
+    .seg button[aria-pressed="true"] { background: rgba(202, 184, 229, 0.18); color: #fff; }
+
+    /* ========================================================
+       إطار الشاشة المشترك
+    ======================================================== */
+    .screen-container { width: 100%; max-width: 390px; position: relative; }
+    .screen-container.active-screen { animation: enter 0.4s var(--ease-out); }
+    @keyframes enter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    .frame {
+      position: relative; overflow: hidden; overflow: clip;
+      min-height: 790px;
+      display: flex; flex-direction: column;
+      padding: 24px 22px 22px;
+      border-radius: 44px;
+    }
+    .layer { position: absolute; pointer-events: none; }
+    .content { position: relative; z-index: 1; display: flex; flex-direction: column; }
+    .footer { position: relative; z-index: 1; margin-top: auto; padding-top: 24px; }
+
+    .lockup-v { width: 92px; height: auto; display: block; }
+    .lockup-h { height: 36px; width: auto; display: block; }
+    .mk { fill: var(--mark, var(--purple)); }
+    .wm { fill: var(--wordmark, #0b0b0f); }
+
+    .title { font-family: var(--font-display); font-weight: 700; font-size: 41px; line-height: 1.15; }
+    .subtitle { font-size: 15px; margin-top: 8px; }
+
+    .fields { display: flex; flex-direction: column; gap: 16px; margin-top: 28px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 15px; font-weight: 600; }
+    .hint { font-weight: 400; font-size: 13px; }
+    .err { font-size: 13px; font-weight: 600; line-height: 1.5; }
+    .err:empty { display: none; }
+    input { width: 100%; font-size: 16px; outline: none; }
+    input[dir="ltr"], input[dir="ltr"]::placeholder { text-align: right; }
+
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+      min-height: 54px; padding: 12px 24px; border: 0; border-radius: 999px;
+      font-size: 16px; font-weight: 700; text-decoration: none;
+      transition: transform 0.15s var(--ease-out), background-color 0.2s ease, filter 0.2s ease;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn:disabled { cursor: progress; opacity: 0.85; transform: none; }
+    .btn-wide { width: 100%; }
+    .spinner {
+      display: none; width: 16px; height: 16px; border-radius: 50%;
+      border: 2px solid currentColor; border-inline-end-color: transparent;
+      animation: spin 0.7s linear infinite;
+    }
+    .is-loading .spinner { display: inline-block; }
+    .is-loading .btn-ico { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .form-alert {
+      display: flex; gap: 8px; align-items: flex-start;
+      font-size: 14px; font-weight: 600; line-height: 1.6;
+      padding: 12px 14px; border-radius: 16px; margin-bottom: 14px;
+    }
+    .form-alert .ico { margin-top: 3px; }
+
+    /* ========================================================
+       التصميم 1: البنفسجي العميق (الشريط الأصفر + نمط الشعار)
+    ======================================================== */
+    .v-deep {
+      background: var(--deep); color: #fff; caret-color: var(--yellow);
+      border: 1px solid rgba(202, 184, 229, 0.22);
+      box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.7);
+      --mark: var(--lavender); --wordmark: var(--lavender);
+    }
+    .deep-ribbon { top: 0; left: 0; width: 172px; height: 166px; transform: rotate(180deg); }
+    .v-deep .lockup-v { align-self: flex-start; }
+    .v-deep .title { margin-top: 44px; }
+    .v-deep .subtitle { color: #ddd2f2; }
+    .v-deep label { color: #f1ebfb; }
+    .v-deep .hint { color: #d6c9ee; }
+    .v-deep input {
+      min-height: 52px; padding: 12px 16px; border-radius: 16px;
+      background: rgba(255, 255, 255, 0.07); border: 1.5px solid #9d86cf; color: #fff;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
+    }
+    .v-deep input::placeholder { color: #b9a8dc; opacity: 1; }
+    .v-deep input:focus { border-color: var(--yellow); background: rgba(255, 255, 255, 0.1); }
+    .v-deep input:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+    .v-deep .has-error input { border-color: var(--orange); }
+    .v-deep .err { color: #ff9f6e; }
+    .v-deep .form-alert { background: rgba(242, 109, 36, 0.14); color: #ffc2a0; border: 1px solid rgba(242, 109, 36, 0.45); }
+    .deep-btn { background: var(--yellow); color: var(--deep); }
+    .deep-btn:hover { background: #ffd966; }
+    .deep-btn:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+
+    /* ========================================================
+       التصميم 2: الدوائر (عنقود الدوائر + حلقة الاكتمال)
+    ======================================================== */
+    .v-circles {
+      background: var(--paper); color: var(--deep); caret-color: var(--purple);
+      border: 1px solid #e2dfe8;
+      box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.55);
+    }
+    .circles-art { top: -64px; left: -58px; width: 214px; height: auto; }
+    .v-circles .lockup-v { align-self: flex-start; }
+    .circles-titlebar { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; margin-top: 30px; }
+    .v-circles .subtitle { color: var(--muted); }
+    .progress-ring { position: relative; width: 68px; height: 68px; flex: none; }
+    .progress-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .progress-ring circle { fill: none; stroke-width: 11; }
+    .progress-ring .track { stroke: #e0dbea; }
+    .progress-ring .seg-arc { stroke-dasharray: 0 300; transition: stroke-dasharray 0.6s var(--ease-out); }
+    .progress-ring .seg-arc.on { stroke-dasharray: 96 204; }
+    .progress-ring .s1 { stroke: var(--deep); stroke-dashoffset: 0; }
+    .progress-ring .s2 { stroke: var(--purple); stroke-dashoffset: -100; }
+    .progress-ring .s3 { stroke: var(--lavender); stroke-dashoffset: -200; }
+    .progress-ring .count {
+      position: absolute; inset: 0; display: grid; place-items: center;
+      font-size: 13px; font-weight: 700; color: var(--deep);
+    }
+    .c-card {
+      background: #fff; border: 1.5px solid var(--line); border-radius: 18px;
+      padding: 10px 16px 12px;
+      transition: border-color 0.2s ease;
+    }
+    .c-card:focus-within { border-color: var(--purple); }
+    .c-card:has(input:focus-visible) { outline: 2px solid var(--purple); outline-offset: 2px; }
+    .v-circles label { color: var(--deep); font-size: 14px; }
+    .v-circles input { border: 0; background: transparent; color: var(--ink); font-weight: 500; padding: 2px 0; }
+    .v-circles input::placeholder { color: #73688a; opacity: 1; }
+    .v-circles .has-error.c-card { border-color: var(--error-light); }
+    .v-circles .err { color: var(--error-light); }
+    .v-circles .form-alert, .v-guide .form-alert { background: #fde9df; color: var(--error-light); }
+    .circles-btn { background: var(--purple); color: #fff; }
+    .circles-btn:hover { background: #5f0bbd; }
+    .circles-btn:focus-visible { outline: 2px solid var(--deep); outline-offset: 3px; }
+
+    /* ========================================================
+       التصميم 3: صفحات الدليل (الشريط + الخط الزمني بالأقواس)
+    ======================================================== */
+    .v-guide {
+      background: var(--paper); color: var(--deep); caret-color: var(--purple);
+      border: 1px solid #e2dfe8; border-radius: 40px;
+      box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.55);
+      padding-top: 28px;
+    }
+    .guide-ribbon { top: 0; left: 0; width: 132px; height: 128px; }
+    .v-guide .lockup-h { align-self: flex-start; }
+    .v-guide .title { margin-top: 30px; color: var(--deep); }
+
+    .g-stepper { position: relative; margin-top: 28px; height: 74px; }
+    .g-steps { list-style: none; position: relative; display: grid; grid-template-columns: repeat(3, 1fr); height: 100%; }
+    .g-stepper::before, .g-progress {
+      content: ""; position: absolute; top: 37px; height: 3px; border-radius: 2px;
+      inset-inline-start: 0; inset-inline-end: 0; background: var(--lavender);
+    }
+    .g-progress {
+      inset-inline-end: auto; width: 0; background: var(--purple); z-index: 1;
+      transition: width 0.5s var(--ease-out);
+    }
+    .g-step { position: relative; }
+    .g-step { color: var(--lavender); }
+    .g-step.done { color: var(--deep); }
+    .g-step.current { color: var(--purple); }
+    .g-dot {
+      position: absolute; top: 30px; inset-inline-start: 18%; z-index: 2;
+      width: 17px; height: 17px; border-radius: 50%;
+      background: var(--paper); border: 3px solid currentColor;
+    }
+    .g-step.done .g-dot, .g-step.current .g-dot { background: currentColor; }
+    .g-arc {
+      position: absolute; inset-inline-start: calc(18% + 8.5px); width: 26px; height: 26px;
+      fill: none; stroke: currentColor; stroke-width: 3; stroke-linecap: round; overflow: visible;
+    }
+    .g-step:nth-child(odd) .g-arc { top: 12.5px; }
+    .g-step:nth-child(even) .g-arc { top: 38.5px; }
+    .g-label {
+      position: absolute; inset-inline-start: calc(18% + 36px);
+      font-size: 14px; font-weight: 700; line-height: 1.4; color: var(--muted); white-space: nowrap;
+    }
+    .g-step:nth-child(odd) .g-label { top: 1px; }
+    .g-step:nth-child(even) .g-label { top: 54px; }
+    .g-step.done .g-label, .g-step.current .g-label { color: var(--deep); }
+
+    .g-panel { display: flex; flex-direction: column; gap: 22px; margin-top: 18px; }
+    .g-panel-title { font-family: var(--font-display); font-weight: 700; font-size: 29px; line-height: 1.2; outline: none; }
+    .v-guide label { color: var(--muted); font-size: 14px; font-weight: 500; }
+    .v-guide input {
+      border: 0; border-bottom: 1.5px solid var(--line); background: transparent;
+      padding: 8px 0; color: var(--deep); font-size: 17px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .v-guide input::placeholder { color: #73688a; opacity: 1; }
+    .v-guide input:focus { border-bottom-color: var(--purple); box-shadow: 0 1.5px 0 var(--purple); }
+    .v-guide input:focus-visible { outline: 2px solid var(--purple); outline-offset: 4px; border-radius: 2px; }
+    .v-guide .has-error input { border-bottom-color: var(--error-light); }
+    .v-guide .err { color: var(--error-light); }
+    .g-review > div {
+      display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: center;
+      padding: 12px 0; border-bottom: 1px solid #ddd8e6;
+    }
+    .g-review dt { font-size: 13px; color: var(--muted); }
+    .g-review dd { font-size: 16px; font-weight: 600; color: var(--ink); grid-row: 2; overflow-wrap: anywhere; }
+    .g-edit, .g-back, .g-undo {
+      background: none; border: 0; min-height: 44px; padding: 0 6px;
+      font-size: 14px; font-weight: 700; color: var(--purple);
+    }
+    .g-edit, .g-undo { text-decoration: underline; text-underline-offset: 4px; }
+    .g-edit { grid-row: 1 / span 2; grid-column: 2; }
+    .g-back { color: var(--muted); font-size: 15px; }
+    .g-back:hover { color: var(--deep); }
+    .g-edit:focus-visible, .g-back:focus-visible, .g-undo:focus-visible { outline: 2px solid var(--purple); outline-offset: 2px; border-radius: 6px; }
+    .g-undo-bar { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 14px; color: var(--muted); margin-bottom: 12px; }
+    .g-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .guide-btn { background: var(--deep); color: #fff; min-height: 50px; padding: 12px 26px; font-size: 15px; }
+    .guide-btn:hover { background: #45099b; }
+    .guide-btn:focus-visible { outline: 2px solid var(--purple); outline-offset: 3px; }
+
+    /* ========================================================
+       شاشات الحالة: تم الإرسال / التسجيل مغلق (بثلاثة أنماط)
+    ======================================================== */
+    .s-frame { align-items: center; text-align: center; }
+    .s-frame .content { align-items: center; flex: 1; width: 100%; }
+    .s-head { align-self: stretch; display: flex; }
+    .s-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 28px 0 8px; width: 100%; }
+    .s-emblem-wrap { position: relative; width: 100%; height: 236px; display: flex; align-items: flex-end; justify-content: center; }
+    .s-loop { left: -22px; right: -22px; bottom: 0; width: calc(100% + 44px); height: 236px; }
+    .s-loop .loop-solid { fill: none; stroke-width: 47.4; stroke-linecap: round; }
+    .s-loop .loop-colour { display: none; }
+    .t-guide .s-loop .loop-solid { display: none; }
+    .t-guide .s-loop .loop-colour { display: inline; }
+    .s-emblem { width: 112px; height: 112px; position: relative; z-index: 1; }
+    .s-emblem > svg { width: 100%; height: 100%; display: block; }
+    .s-emblem .ring { fill: none; stroke-width: 12; }
+    .s-emblem .seg-arc { fill: none; stroke-width: 12; }
+    .s-emblem .ico { width: 36px; height: 36px; stroke-width: 2.6; }
+    .s-title { font-family: var(--font-display); font-weight: 700; font-size: 41px; line-height: 1.15; margin-top: 26px; outline: none; overflow-wrap: anywhere; }
+    .s-desc { font-size: 15px; line-height: 1.8; margin-top: 10px; max-width: 30ch; }
+    .s-note-card {
+      position: relative; width: 100%; margin-top: 28px; padding: 18px 20px; text-align: start;
+    }
+    /* عنصر «بين قوسين» من الدليل */
+    .s-note-card::before, .s-note-card::after {
+      content: ""; position: absolute; width: 34px; height: 34px; border: 4px solid currentColor;
+    }
+    .s-note-card::before { top: 0; right: 0; border-radius: 0 34px 0 0; border-bottom: 0; border-left: 0; }
+    .s-note-card::after { bottom: 0; left: 0; border-radius: 0 0 0 34px; border-top: 0; border-right: 0; }
+    .s-note-card h3 { font-family: var(--font-display); font-weight: 700; font-size: 21px; line-height: 1.3; }
+    .s-note-card p { font-size: 14px; line-height: 1.8; margin-top: 4px; }
+    .s-actions { position: relative; z-index: 1; width: 100%; display: flex; flex-direction: column; gap: 10px; padding-top: 24px; }
+    .s-link {
+      align-self: center; background: none; border: 0; min-height: 44px; padding: 0 6px;
+      font-size: 14px; font-weight: 600; text-decoration: underline; text-underline-offset: 4px; color: inherit;
+    }
+    .s-note { font-size: 14px; }
+    .btn.is-pending {
+      background: transparent !important; color: inherit !important; box-shadow: none;
+      border: 1.5px dashed currentColor !important; cursor: not-allowed; white-space: nowrap;
+      font-size: 15px; opacity: 0.85;
+    }
+    .btn.is-pending:active { transform: none; }
+    .soon {
+      font-size: 12px; font-weight: 700; padding: 2px 10px; border-radius: 999px;
+      border: 1.5px solid currentColor;
+    }
+
+    .s-note:empty { display: none; }
+    .s-frame :focus-visible { outline: 2px solid var(--ring); outline-offset: 3px; }
+
+    .t-deep {
+      background: var(--deep); color: #fff; border: 1px solid rgba(202, 184, 229, 0.22);
+      box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.7);
+      --mark: var(--lavender); --wordmark: var(--lavender); --ring: var(--yellow);
+      --loop: var(--yellow); --muted-s: #ddd2f2; --accent: var(--yellow);
+      --seg1: var(--lavender); --seg2: var(--yellow); --seg3: var(--sky);
+    }
+    .t-deep .s-emblem .ring { stroke: var(--yellow); }
+    .t-deep .s-emblem .disc { fill: var(--purple); }
+    .t-deep .s-emblem .ico { color: #fff; }
+    .t-deep .s-note-card { color: var(--yellow); }
+    .t-deep .s-note-card h3 { color: #fff; }
+    .t-deep .btn-p { background: var(--yellow); color: var(--deep); }
+    .t-deep .btn-s { background: transparent; color: #fff; border: 1.5px solid #9d86cf; }
+
+    .t-circles {
+      background: var(--paper); color: var(--deep); border: 1px solid #e2dfe8;
+      box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.55);
+      --ring: var(--purple); --loop: var(--purple); --muted-s: var(--muted);
+      --seg1: var(--deep); --seg2: var(--purple); --seg3: var(--lavender);
+    }
+    .t-circles .circles-art { display: block; }
+    .t-circles .s-emblem .ring { stroke: var(--purple); }
+    .t-circles .s-emblem .disc { fill: var(--deep); }
+    .t-circles .s-emblem .ico { color: #fff; }
+    .t-circles .s-note-card { color: var(--purple); background: #fff; border-radius: 4px 20px 4px 20px; }
+    .t-circles .s-note-card h3 { color: var(--deep); }
+    .t-circles .btn-p { background: var(--purple); color: #fff; }
+    .t-circles .btn-s { background: #fff; color: var(--deep); border: 1.5px solid var(--line); }
+
+    .t-guide {
+      background: var(--paper); color: var(--deep); border: 1px solid #e2dfe8; border-radius: 40px;
+      box-shadow: 0 30px 60px -24px rgba(0, 0, 0, 0.55);
+      --ring: var(--purple); --loop: var(--ribbon-ink); --muted-s: var(--muted);
+      --seg1: var(--deep); --seg2: var(--purple); --seg3: var(--lavender);
+    }
+    .guide-corner { top: 0; left: 0; width: 150px; height: 150px; }
+    .t-guide .s-emblem .ring { stroke: var(--lavender); }
+    .t-guide .s-emblem .disc { fill: var(--deep); }
+    .t-guide .s-emblem .ico { color: #fff; }
+    .t-guide .s-note-card { color: var(--ribbon-ink); }
+    .t-guide .btn-p { background: var(--deep); color: #fff; }
+    .t-guide .btn-s { background: transparent; color: var(--deep); border: 1.5px solid var(--deep); }
+
+    .s-frame .circles-art, .s-frame .guide-corner { display: none; }
+    .t-circles .circles-art, .t-guide .guide-corner { display: block; }
+    .s-frame .lockup-v, .s-frame .lockup-h { display: none; }
+    .t-deep .lockup-v, .t-circles .lockup-v, .t-guide .lockup-h { display: block; }
+    .t-circles .lockup-v .mk-solid, .t-guide .lockup-h .mk-solid { display: none; }
+    .t-deep .lockup-v .mk-grad { display: none; }
+    .s-loop .loop-solid { stroke: var(--loop); }
+    .s-desc, .s-note-card p, .s-note { color: var(--muted-s); }
+    .t-deep .s-desc bdi { color: #fff; }
+
+    /* لحظة النجاح: الحلقة من الدليل ترسم نفسها */
+    #screen-4.active-screen .s-loop .loop-solid,
+    #screen-4.active-screen .s-loop .loop-reveal {
+      stroke-dasharray: 1 2; stroke-dashoffset: 1;
+      animation: draw 1.6s var(--ease-out) 0.15s forwards;
+    }
+    #screen-4.active-screen .s-emblem { animation: pop 0.7s var(--ease-out) 0.35s both; }
+    #screen-4.active-screen .s-emblem .ico { stroke-dasharray: 24; stroke-dashoffset: 24; animation: draw-check 0.5s var(--ease-out) 0.8s forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @keyframes draw-check { to { stroke-dashoffset: 0; } }
+    @keyframes pop { from { transform: scale(0.6); opacity: 0; } to { transform: none; opacity: 1; } }
+
+    /* ========================================================
+       الجوال: الشاشة تملأ الجهاز
+    ======================================================== */
+    @media (max-width: 520px) {
+      body { padding: 0; }
+      .harness-head { padding: 14px 16px 10px; margin-bottom: 0; }
+      .harness-head .lockup-h { height: 34px; }
+      .preview-nav { top: 0; width: 100%; border-radius: 0 0 22px 22px; border-top: 0; margin-bottom: 0; }
+      .state-theme { padding: 12px 16px 0; margin-bottom: 0; }
+      .screen-container { max-width: none; }
+      .frame {
+        min-height: calc(100dvh - var(--chrome-h, 118px));
+        border-radius: 0; border: 0; box-shadow: none;
+        padding-inline: 18px;
+        padding-bottom: calc(20px + env(safe-area-inset-bottom));
+      }
+    }
+
+    @media (max-width: 520px) {
+      .footer {
+        position: sticky; bottom: 0; z-index: 2;
+        margin-inline: -18px; padding-inline: 18px;
+        padding-bottom: calc(16px + env(safe-area-inset-bottom));
+        background: linear-gradient(to top, var(--frame-bg) 72%, transparent);
+      }
+      .s-emblem-wrap { height: 160px; }
+      .s-loop { height: 160px; }
+      .s-actions { padding-bottom: calc(8px + env(safe-area-inset-bottom)); }
+      .s-body { padding-top: 12px; }
+    }
+    .v-deep, .t-deep { --frame-bg: #33007E; }
+    .v-circles, .v-guide, .t-circles, .t-guide { --frame-bg: #F1F2F4; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      #screen-4.active-screen .s-loop .loop-solid, #screen-4.active-screen .s-loop .loop-reveal, #screen-4.active-screen .s-emblem .ico { stroke-dashoffset: 0; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- أصول الهوية: الشعار والعناصر مستخرجة من ملف الدليل -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+    <defs>
+      <path id="mc-mark-path" d="M91.92 79.15C91.92 82.73 91.4 86.26 90.39 89.65L90.37 89.75C87.66 98.76 81.7 106.31 73.54 111.04C73.45 111.1 73.37 111.15 73.28 111.2C73.25 111.21 73.22 111.23 73.19 111.25C73 111.33 72.78 111.37 72.56 111.37C72.04 111.37 71.58 111.13 71.28 110.76C71.27 110.75 71.26 110.74 71.26 110.73L71.05 110.38C71.05 110.37 71.05 110.37 71.05 110.36L67.51 104.22C67.49 104.2 67.48 104.19 67.47 104.17C67.47 104.17 67.47 104.16 67.47 104.16L67.4 104.04C67.39 104.03 67.39 104.02 67.39 104.01C67.28 103.8 67.22 103.56 67.22 103.31C67.22 102.74 67.51 102.25 67.95 101.95C67.95 101.95 67.96 101.94 67.97 101.94C67.97 101.94 67.97 101.93 67.98 101.94C68.05 101.89 68.13 101.85 68.2 101.81L68.22 101.8C76.02 97.26 81.25 88.81 81.25 79.14C81.25 73.64 79.56 68.54 76.66 64.33L76.66 64.32C76.65 64.31 76.64 64.3 76.63 64.29C76.58 64.21 76.53 64.13 76.47 64.05C76.47 64.04 76.46 64.04 76.46 64.04C76.17 63.69 75.72 63.47 75.22 63.47C74.63 63.47 74.11 63.79 73.83 64.26C73.81 64.28 73.79 64.31 73.78 64.34L73.78 64.34L73.75 64.39C73.75 64.39 73.75 64.4 73.74 64.41L70.22 70.5L70.22 70.51L70.22 70.51C70.1 70.74 70.03 71 70.03 71.28C70.03 71.55 70.09 71.8 70.2 72.01C70.2 72.01 70.2 72.02 70.2 72.02C71.22 74.18 71.8 76.6 71.8 79.15C71.8 85.33 68.42 90.75 63.42 93.64C63.42 93.64 63.42 93.65 63.41 93.65C63.33 93.7 63.25 93.75 63.16 93.79C63.15 93.79 63.15 93.8 63.14 93.8C62.94 93.88 62.73 93.93 62.5 93.93C61.94 93.93 61.44 93.64 61.15 93.21C61.11 93.15 61.07 93.09 61.04 93.03L59.13 89.71L58.66 88.91L58.2 88.1L58.01 87.77L57.44 86.8L57.43 86.78C57.4 86.73 57.38 86.68 57.35 86.63L57.31 86.57C57.21 86.36 57.15 86.12 57.15 85.86C57.15 85.24 57.5 84.7 58 84.43C59.85 83.39 61.11 81.41 61.11 79.14C61.11 76.26 59.1 73.86 56.42 73.24C55.98 73.13 55.52 73.08 55.05 73.08C54.58 73.08 54.11 73.13 53.68 73.24C50.99 73.86 48.99 76.26 48.99 79.14C48.99 81.42 50.25 83.4 52.11 84.43C52.62 84.71 52.96 85.25 52.96 85.87C52.96 86.07 52.93 86.26 52.86 86.44C52.86 86.45 52.85 86.45 52.85 86.45L52.59 86.91C52.58 86.91 52.58 86.91 52.58 86.91L52.09 87.77L51.88 88.13L51.41 88.94L50.95 89.75L49.08 92.99C49.07 92.99 49.07 93.01 49.06 93.01L48.95 93.21C48.95 93.21 48.95 93.22 48.94 93.22C48.65 93.65 48.16 93.93 47.6 93.93C47.34 93.93 47.09 93.86 46.86 93.75C46.8 93.72 46.74 93.69 46.69 93.65C41.68 90.75 38.3 85.34 38.3 79.15C38.3 76.62 38.86 74.23 39.87 72.08L39.87 72.07C39.99 71.85 40.05 71.59 40.05 71.32C40.05 71.05 39.99 70.79 39.87 70.57C39.87 70.57 39.87 70.57 39.87 70.57L36.36 64.49L36.36 64.49C36.32 64.39 36.26 64.29 36.19 64.2L36.19 64.2C36.19 64.19 36.19 64.19 36.19 64.19C36.19 64.19 36.19 64.19 36.18 64.19L36.18 64.18C36.19 64.18 36.18 64.18 36.18 64.18C36.18 64.17 36.18 64.17 36.18 64.17L36.18 64.17C36.18 64.17 36.18 64.17 36.17 64.16C36.16 64.14 36.15 64.12 36.13 64.11C35.83 63.74 35.37 63.5 34.86 63.5C34.35 63.5 33.9 63.73 33.6 64.09C33.58 64.12 33.56 64.14 33.53 64.17C33.51 64.21 33.48 64.25 33.46 64.28C30.55 68.5 28.84 73.62 28.84 79.14C28.84 88.81 34.08 97.26 41.88 101.8C41.88 101.8 41.89 101.81 41.89 101.81C41.98 101.86 42.07 101.91 42.15 101.95C42.59 102.25 42.88 102.74 42.88 103.31C42.88 103.56 42.82 103.79 42.72 104C42.72 104 42.72 104.01 42.71 104.01L42.59 104.22C42.59 104.22 42.59 104.23 42.58 104.23L39.05 110.36L38.83 110.74C38.83 110.75 38.82 110.75 38.82 110.76C38.52 111.13 38.05 111.37 37.54 111.37C37.31 111.37 37.1 111.33 36.9 111.25L36.9 111.24C36.79 111.19 36.68 111.12 36.58 111.06C25.2 104.47 18.18 92.35 18.18 79.15C18.18 69.11 22.28 59.51 29.48 52.58C29.69 52.39 29.89 52.2 30.09 52.01C30.29 51.83 30.49 51.65 30.69 51.47C30.69 51.47 30.7 51.46 30.7 51.46C32.54 49.84 34.53 48.42 36.63 47.2C36.66 47.18 36.68 47.17 36.71 47.16C36.72 47.15 36.72 47.15 36.73 47.15C36.77 47.12 36.81 47.1 36.84 47.08C36.85 47.08 36.85 47.08 36.85 47.08C37.06 46.98 37.3 46.92 37.54 46.92C38.13 46.92 38.65 47.24 38.94 47.71C38.96 47.74 38.98 47.78 39 47.82L43.5 55.61L48.25 63.84C50.33 62.92 52.63 62.4 55.05 62.4C57.47 62.4 59.77 62.92 61.85 63.84L66.6 55.61L71.1 47.82C71.13 47.76 71.16 47.7 71.2 47.65C71.49 47.21 71.99 46.92 72.55 46.92C72.8 46.92 73.03 46.97 73.23 47.07C73.24 47.07 73.24 47.08 73.24 47.08C73.33 47.13 73.41 47.18 73.5 47.22C75.58 48.43 77.55 49.84 79.35 51.42C79.35 51.42 79.36 51.43 79.36 51.43C79.57 51.62 79.78 51.8 79.98 51.99C80.18 52.18 80.39 52.36 80.58 52.56C85.85 57.63 89.56 64.25 91.09 71.37C91.64 73.91 91.92 76.53 91.92 79.15"/>
+      <path id="mc-ar" d="M6.43 133.71C6.22 133.71 6.03 133.64 5.87 133.51C5.71 133.37 5.63 133.15 5.63 132.85C5.63 132.55 5.71 132.33 5.87 132.2C6.03 132.07 6.22 132 6.43 132C6.68 132 6.87 132.07 7.02 132.22C7.16 132.37 7.23 132.58 7.23 132.85C7.23 133.13 7.16 133.34 7.02 133.49C6.87 133.63 6.68 133.71 6.43 133.71M8.85 133.71C8.61 133.71 8.41 133.63 8.27 133.49C8.13 133.34 8.05 133.13 8.05 132.85C8.05 132.58 8.13 132.37 8.27 132.22C8.41 132.07 8.61 132 8.85 132C9.11 132 9.31 132.08 9.44 132.23C9.58 132.39 9.65 132.6 9.65 132.85C9.65 133.11 9.58 133.32 9.44 133.47C9.31 133.63 9.11 133.71 8.85 133.71M8.74 136.57C8.2 136.57 7.72 136.67 7.33 136.87C6.94 137.06 6.63 137.35 6.43 137.71C6.23 138.08 6.13 138.53 6.13 139.05C6.13 139.53 6.2 139.93 6.34 140.24C6.47 140.55 6.68 140.78 6.96 140.92C7.25 141.07 7.6 141.15 8.03 141.15L9.34 141.15L9.33 136.56L8.74 136.57M3.69 145.62C2.95 145.62 2.3 145.46 1.78 145.13C1.33 144.85 0.98 144.46 0.73 143.96C0.49 143.47 0.36 142.89 0.36 142.24C0.36 141.64 0.41 141.07 0.51 140.52C0.61 139.98 0.75 139.44 0.94 138.93L2.11 138.92C1.97 139.38 1.85 139.88 1.77 140.41C1.69 140.94 1.65 141.53 1.65 142.15C1.65 142.9 1.85 143.49 2.25 143.89C2.64 144.3 3.21 144.5 3.94 144.5L6.77 144.5C7.38 144.5 7.88 144.42 8.25 144.27C8.62 144.11 8.9 143.87 9.07 143.55C9.24 143.23 9.33 142.83 9.33 142.35L9.33 142.25L8.05 142.27C7.66 142.27 7.29 142.23 6.96 142.15C6.64 142.07 6.35 141.95 6.1 141.79C5.7 141.52 5.39 141.15 5.17 140.7C4.96 140.25 4.85 139.7 4.85 139.06C4.85 138.72 4.89 138.39 4.96 138.09C5.03 137.8 5.13 137.52 5.26 137.27C5.56 136.69 6.01 136.24 6.6 135.92C7.19 135.61 7.9 135.45 8.7 135.45L10.53 135.45L10.55 141.16L12.07 141.15C12.14 141.15 12.15 141.19 12.15 141.22L12.15 142.18C12.15 142.24 12.12 142.27 12.07 142.27L10.53 142.27C10.55 143.06 10.41 143.68 10.15 144.16C9.89 144.65 9.49 145.02 8.97 145.26C8.45 145.5 7.78 145.62 6.99 145.62L3.69 145.62M8.74 136.65C8.21 136.65 7.74 136.75 7.36 136.94C6.98 137.12 6.69 137.4 6.5 137.75C6.3 138.11 6.2 138.54 6.2 139.05C6.2 139.52 6.27 139.91 6.4 140.21C6.53 140.5 6.73 140.72 7 140.86C7.27 141 7.62 141.07 8.03 141.07L9.27 141.07L9.25 136.64L8.74 136.65M8.03 141.25C7.59 141.25 7.21 141.17 6.91 141.02C6.61 140.86 6.39 140.61 6.24 140.28C6.09 139.96 6.02 139.54 6.02 139.05C6.02 138.51 6.13 138.05 6.34 137.66C6.55 137.27 6.87 136.97 7.28 136.77C7.69 136.57 8.18 136.47 8.74 136.47L9.42 136.47L9.43 141.25L8.03 141.25M1.01 139.03C0.84 139.52 0.71 140.02 0.61 140.54C0.52 141.08 0.47 141.65 0.47 142.24C0.47 142.87 0.59 143.44 0.83 143.92C1.07 144.39 1.41 144.77 1.84 145.04C2.34 145.36 2.97 145.52 3.69 145.52L6.99 145.52C7.77 145.52 8.42 145.4 8.93 145.16C9.43 144.93 9.81 144.58 10.06 144.11C10.31 143.64 10.44 143.04 10.44 142.34L10.44 142.18L12.06 142.16L12.05 141.24L10.45 141.25L10.44 135.54L8.7 135.56C7.91 135.56 7.23 135.71 6.65 136.02C6.08 136.32 5.64 136.76 5.35 137.31C5.23 137.56 5.13 137.83 5.06 138.12C4.99 138.41 4.96 138.73 4.96 139.06C4.96 139.68 5.06 140.21 5.27 140.65C5.48 141.09 5.78 141.44 6.16 141.7C6.4 141.85 6.67 141.97 6.99 142.04C7.31 142.12 7.66 142.16 8.05 142.16L9.42 142.16L9.43 142.35C9.43 142.85 9.34 143.27 9.16 143.6C8.98 143.94 8.69 144.2 8.29 144.36C7.91 144.53 7.39 144.61 6.77 144.61L3.94 144.61C3.18 144.61 2.59 144.39 2.17 143.97C1.76 143.54 1.54 142.93 1.54 142.15C1.54 141.53 1.58 140.94 1.66 140.4C1.74 139.9 1.85 139.43 1.99 139.01L1.01 139.03M3.69 145.7C2.93 145.7 2.28 145.53 1.74 145.2C1.28 144.91 0.92 144.5 0.67 144C0.41 143.5 0.29 142.9 0.29 142.24C0.29 141.64 0.34 141.06 0.43 140.51C0.53 139.96 0.68 139.42 0.87 138.91L2.22 138.85L2.2 138.97C2.04 139.41 1.92 139.9 1.85 140.43C1.77 140.96 1.73 141.54 1.73 142.15C1.73 142.88 1.92 143.45 2.3 143.84C2.68 144.23 3.24 144.43 3.94 144.43L6.77 144.43C7.37 144.43 7.86 144.35 8.22 144.2C8.58 144.05 8.84 143.82 9 143.52C9.17 143.21 9.25 142.82 9.25 142.35L8.05 142.34C7.65 142.34 7.27 142.3 6.94 142.22C6.61 142.14 6.31 142.02 6.06 141.85C5.65 141.57 5.33 141.2 5.11 140.73C4.89 140.27 4.77 139.71 4.77 139.06C4.77 138.71 4.81 138.38 4.88 138.08C4.95 137.77 5.06 137.49 5.19 137.23C5.5 136.64 5.96 136.18 6.57 135.86C7.17 135.54 7.89 135.38 8.7 135.38L10.61 135.38L10.62 141.08L12.07 141.07C12.19 141.07 12.23 141.15 12.23 141.22L12.23 142.18C12.23 142.28 12.17 142.34 12.07 142.34L10.61 142.35C10.62 143.08 10.49 143.7 10.22 144.2C9.95 144.7 9.54 145.08 9 145.33C8.47 145.57 7.79 145.7 6.99 145.7L3.69 145.7M11.93 142.27C11.87 142.27 11.84 142.24 11.84 142.18L11.84 141.22C11.84 141.19 11.85 141.15 11.93 141.15L14.46 141.15C14.51 141.15 14.55 141.17 14.55 141.22L14.55 142.18C14.55 142.24 14.52 142.27 14.46 142.27L11.93 142.27M14.32 142.27C14.27 142.27 14.24 142.24 14.24 142.18L14.24 141.22C14.24 141.19 14.25 141.15 14.32 141.15L16.85 141.15C16.93 141.15 16.94 141.19 16.94 141.22L16.94 142.18C16.94 142.24 16.91 142.27 16.85 142.27L14.32 142.27M14.34 142.17L16.85 142.16L16.83 141.24L14.34 141.25L14.34 142.17M14.32 142.34C14.22 142.34 14.16 142.28 14.16 142.18L14.16 141.22C14.16 141.14 14.21 141.07 14.32 141.07L16.85 141.07C16.97 141.07 17.01 141.15 17.01 141.22L17.01 142.18C17.01 142.28 16.95 142.34 16.85 142.34L14.32 142.34M16.71 142.27C16.66 142.27 16.63 142.24 16.63 142.18L16.63 141.22C16.63 141.17 16.66 141.15 16.71 141.15L19.24 141.15C19.32 141.15 19.33 141.19 19.33 141.22L19.33 142.18C19.33 142.24 19.3 142.27 19.24 142.27L16.71 142.27M19.1 142.27C19.05 142.27 19.02 142.24 19.02 142.18L19.02 141.22C19.02 141.19 19.03 141.15 19.1 141.15L21.64 141.15C21.71 141.15 21.72 141.19 21.72 141.22L21.72 142.18C21.72 142.24 21.69 142.27 21.64 142.27L19.1 142.27M22.95 145.12C22.73 145.12 22.54 145.05 22.39 144.92C22.23 144.79 22.15 144.57 22.15 144.26C22.15 143.96 22.23 143.74 22.39 143.61C22.54 143.48 22.73 143.41 22.95 143.41C23.2 143.41 23.39 143.49 23.53 143.63C23.68 143.78 23.75 143.99 23.75 144.26C23.75 144.54 23.68 144.75 23.53 144.9C23.39 145.04 23.2 145.12 22.95 145.12M25.37 145.12C25.12 145.12 24.93 145.04 24.78 144.9C24.64 144.75 24.57 144.54 24.57 144.26C24.57 143.99 24.64 143.78 24.78 143.63C24.93 143.49 25.12 143.41 25.37 143.41C25.62 143.41 25.82 143.49 25.96 143.65C26.1 143.8 26.17 144.01 26.17 144.26C26.17 144.52 26.1 144.73 25.96 144.88C25.82 145.04 25.62 145.12 25.37 145.12M22.95 143.52C22.76 143.52 22.59 143.58 22.46 143.69C22.32 143.8 22.26 144 22.26 144.27C22.26 144.53 22.32 144.73 22.46 144.84C22.59 144.95 22.76 145.01 22.95 145.01C23.17 145.01 23.33 144.95 23.46 144.82C23.58 144.7 23.64 144.51 23.64 144.27C23.64 144.02 23.58 143.83 23.46 143.71C23.33 143.58 23.17 143.52 22.95 143.52M22.95 145.2C22.71 145.2 22.51 145.12 22.34 144.98C22.16 144.83 22.07 144.59 22.07 144.27C22.07 143.94 22.16 143.7 22.34 143.55C22.51 143.41 22.71 143.33 22.95 143.33C23.22 143.33 23.43 143.42 23.59 143.58C23.74 143.74 23.82 143.97 23.82 144.27C23.82 144.56 23.74 144.79 23.59 144.95C23.43 145.11 23.22 145.2 22.95 145.2M25.37 143.52C25.15 143.52 24.98 143.58 24.86 143.71C24.74 143.83 24.68 144.02 24.68 144.27C24.68 144.51 24.74 144.7 24.86 144.82C24.98 144.95 25.15 145.01 25.37 145.01C25.6 145.01 25.76 144.95 25.88 144.81C26 144.68 26.06 144.49 26.06 144.27C26.06 144.04 26 143.85 25.88 143.72C25.76 143.58 25.6 143.52 25.37 143.52M25.37 145.2C25.1 145.2 24.89 145.11 24.73 144.95C24.57 144.79 24.49 144.56 24.49 144.27C24.49 143.97 24.57 143.74 24.73 143.58C24.89 143.42 25.1 143.33 25.37 143.33C25.65 143.33 25.86 143.42 26.02 143.6C26.17 143.77 26.24 143.99 26.24 144.27C26.24 144.54 26.17 144.76 26.02 144.93C25.87 145.11 25.65 145.2 25.37 145.2M21.5 142.27C21.44 142.27 21.41 142.24 21.41 142.18L21.41 141.22C21.41 141.19 21.42 141.15 21.5 141.15L24.18 141.15L24.17 135.47L25.43 135.45L25.44 142.27L21.5 142.27M31.66 136.57C30.84 136.57 30.19 136.79 29.74 137.23C29.28 137.66 29.05 138.27 29.05 139.05C29.05 139.77 29.21 140.3 29.52 140.64C29.83 140.98 30.31 141.15 30.95 141.15L32.27 141.15L32.25 136.56L31.66 136.57M30.22 145.62C29.75 145.62 29.3 145.56 28.88 145.44C28.46 145.32 28.06 145.14 27.7 144.91L28.25 143.95C28.57 144.1 28.88 144.24 29.2 144.34C29.52 144.45 29.87 144.5 30.25 144.5C30.88 144.5 31.38 144.33 31.73 144C32.08 143.66 32.26 143.21 32.26 142.66L32.26 142.25L30.91 142.27C29.91 142.27 29.13 141.99 28.59 141.44C28.05 140.9 27.77 140.1 27.77 139.06C27.77 138.33 27.93 137.68 28.24 137.15C28.56 136.61 29.01 136.19 29.59 135.9C30.16 135.6 30.85 135.45 31.62 135.45L33.45 135.45L33.47 141.16L34.6 141.15C34.65 141.15 34.69 141.17 34.69 141.22L34.69 142.18C34.69 142.24 34.65 142.27 34.6 142.27L33.45 142.27L33.47 142.59C33.47 143.54 33.18 144.29 32.62 144.82C32.05 145.35 31.25 145.62 30.22 145.62M50.17 142.27C49.75 142.27 49.36 142.2 49 142.06C48.64 141.92 48.28 141.66 47.9 141.28C47.72 141.57 47.44 141.81 47.1 141.99C46.76 142.18 46.35 142.27 45.87 142.27L34.46 142.27C34.41 142.27 34.38 142.24 34.38 142.18L34.38 141.22C34.38 141.17 34.41 141.15 34.46 141.15L43.05 141.15L43.03 136.56L44.24 136.54L44.25 141.16L45.75 141.15C46.19 141.15 46.54 141 46.78 140.7C47.03 140.41 47.16 140.02 47.16 139.54L47.16 136.56L48.36 136.54L48.38 139.84C48.38 139.92 48.37 140 48.36 140.07C48.59 140.46 48.85 140.74 49.12 140.9C49.39 141.06 49.74 141.15 50.17 141.15L51.02 141.15L51 135.47L52.21 135.45L52.22 141.16L54.56 141.15C54.64 141.15 54.65 141.19 54.65 141.22L54.65 142.18C54.65 142.24 54.62 142.27 54.56 142.27L50.17 142.27M55.46 133.83C55.24 133.83 55.05 133.77 54.9 133.63C54.74 133.5 54.66 133.28 54.66 132.98C54.66 132.68 54.74 132.46 54.9 132.32C55.05 132.19 55.24 132.12 55.46 132.12C55.71 132.12 55.9 132.2 56.05 132.35C56.19 132.49 56.26 132.71 56.26 132.98C56.26 133.25 56.19 133.47 56.05 133.61C55.9 133.76 55.71 133.83 55.46 133.83M57.88 133.83C57.63 133.83 57.44 133.76 57.3 133.61C57.15 133.47 57.08 133.25 57.08 132.98C57.08 132.71 57.15 132.49 57.3 132.35C57.44 132.2 57.63 132.12 57.88 132.12C58.14 132.12 58.33 132.2 58.47 132.36C58.61 132.52 58.68 132.72 58.68 132.98C58.68 133.23 58.61 133.44 58.47 133.6C58.33 133.75 58.14 133.83 57.88 133.83M54.19 142.27C54.24 142.24 54.32 142.23 54.33 142.22L54.34 141.22C54.34 141.19 54.35 141.15 54.42 141.15L56.46 141.15L56.44 135.47L57.7 135.45L57.71 141.16L60.03 141.15C60.1 141.15 60.12 141.19 60.12 141.22L60.12 142.18C60.12 142.25 60.07 142.27 59.8 142.27L54.19 142.27M59.89 142.27C59.83 142.27 59.8 142.24 59.8 142.18L59.8 141.22C59.8 141.17 59.84 141.15 59.89 141.15L61.66 141.15L61.64 131.62L62.9 131.61L62.92 142.27L59.89 142.27M65.7 142.27L65.69 131.62L66.95 131.61L66.96 142.27L65.7 142.27M77.39 148.53C77.18 148.53 76.99 148.47 76.83 148.33C76.68 148.2 76.6 147.98 76.6 147.68C76.6 147.38 76.68 147.16 76.83 147.02C76.99 146.89 77.18 146.82 77.39 146.82C77.64 146.82 77.84 146.9 77.98 147.04C78.12 147.19 78.19 147.4 78.19 147.68C78.19 147.95 78.12 148.16 77.98 148.31C77.84 148.46 77.64 148.53 77.39 148.53M79.81 148.53C79.57 148.53 79.37 148.46 79.23 148.31C79.09 148.16 79.01 147.95 79.01 147.68C79.01 147.4 79.09 147.19 79.23 147.04C79.37 146.9 79.57 146.82 79.81 146.82C80.07 146.82 80.27 146.9 80.4 147.06C80.54 147.22 80.61 147.42 80.61 147.68C80.61 147.93 80.54 148.14 80.4 148.3C80.27 148.45 80.07 148.53 79.81 148.53M76.88 145.62C76.3 145.62 75.79 145.48 75.36 145.21C74.94 144.93 74.61 144.54 74.39 144.03C74.16 143.53 74.05 142.93 74.05 142.24C74.05 141.75 74.09 141.31 74.17 140.92C74.25 140.53 74.37 140.13 74.54 139.71L75.72 139.71C75.58 140.12 75.48 140.5 75.42 140.86C75.37 141.23 75.34 141.66 75.34 142.15C75.34 142.65 75.41 143.08 75.55 143.43C75.69 143.77 75.89 144.04 76.16 144.23C76.42 144.41 76.75 144.5 77.14 144.5L79.88 144.5C80.36 144.5 80.78 144.44 81.12 144.32C81.46 144.2 81.73 144.03 81.91 143.82C82.1 143.61 82.19 143.37 82.19 143.09C82.19 142.88 82.11 142.68 81.94 142.49C81.78 142.29 81.56 142.11 81.31 141.94C81.05 141.76 80.79 141.6 80.52 141.44C80.24 141.27 80 141.12 79.8 140.98C79.61 140.85 79.45 140.73 79.34 140.64C79.19 140.51 79.07 140.38 78.96 140.25C78.86 140.12 78.78 139.97 78.73 139.82C78.68 139.67 78.65 139.51 78.65 139.36C78.65 139.08 78.7 138.79 78.81 138.49C78.91 138.2 79.07 137.89 79.27 137.59C79.55 137.18 79.88 136.81 80.24 136.49C80.61 136.16 81 135.91 81.41 135.73C81.81 135.55 82.21 135.45 82.6 135.45C82.81 135.45 83.03 135.48 83.27 135.54C83.5 135.61 83.72 135.68 83.93 135.76C84.14 135.85 84.3 135.93 84.41 136.02L83.91 136.97C83.81 136.94 83.7 136.9 83.56 136.87C83.41 136.83 83.26 136.8 83.11 136.78C82.96 136.75 82.83 136.74 82.72 136.74C82.53 136.74 82.33 136.78 82.13 136.85C81.92 136.92 81.73 137.01 81.56 137.12C81.28 137.29 81.03 137.5 80.8 137.72C80.58 137.95 80.4 138.19 80.27 138.43C80.13 138.67 80.07 138.9 80.07 139.12C80.07 139.22 80.11 139.33 80.18 139.45C80.26 139.57 80.38 139.69 80.53 139.81C80.68 139.94 80.88 140.07 81.11 140.21C81.45 140.42 81.75 140.61 81.99 140.79C82.23 140.96 82.43 141.12 82.58 141.25C82.88 141.52 83.11 141.82 83.26 142.13C83.42 142.45 83.49 142.78 83.49 143.12C83.49 143.9 83.18 144.52 82.55 144.96C81.92 145.4 81.03 145.62 79.88 145.62L76.88 145.62M85.52 142.27L85.51 141.16L90.18 141.15C90.11 140.81 90.05 140.47 89.97 140.16C89.9 139.84 89.8 139.54 89.7 139.25C89.44 138.51 89.08 137.84 88.63 137.25C88.18 136.67 87.61 136.14 86.92 135.69L87.37 134.61C88.1 134.97 88.74 135.47 89.27 136.09C89.81 136.7 90.26 137.44 90.62 138.29C90.98 139.14 91.24 140.11 91.4 141.19L91.4 142.27L85.52 142.27M93.41 142.27L93.39 131.62L94.65 131.61L94.67 141.16L98.81 141.15C98.88 141.15 98.89 141.19 98.89 141.22L98.89 142.18C98.89 142.24 98.86 142.27 98.81 142.27L93.41 142.27M98.67 142.27C98.61 142.27 98.58 142.24 98.58 142.18L98.58 141.22C98.58 141.17 98.61 141.15 98.67 141.15L101.2 141.15C101.27 141.15 101.29 141.19 101.29 141.22L101.29 142.18C101.29 142.24 101.26 142.27 101.2 142.27L98.67 142.27M101.06 142.27C101.01 142.27 100.97 142.24 100.97 142.18L100.97 141.22C100.97 141.17 101.01 141.15 101.06 141.15L103.59 141.15C103.67 141.15 103.68 141.19 103.68 141.22L103.68 142.18C103.68 142.24 103.65 142.27 103.59 142.27L101.06 142.27M103.45 142.27C103.4 142.27 103.37 142.24 103.37 142.18L103.37 141.22C103.37 141.17 103.4 141.15 103.45 141.15L105.98 141.15C106.06 141.15 106.07 141.19 106.07 141.22L106.07 142.18C106.07 142.24 106.04 142.27 105.98 142.27L103.45 142.27M108.03 134.28C107.78 134.28 107.58 134.21 107.44 134.06C107.3 133.91 107.23 133.7 107.23 133.43C107.23 133.15 107.3 132.94 107.44 132.79C107.58 132.65 107.78 132.57 108.03 132.57C108.28 132.57 108.48 132.65 108.62 132.81C108.75 132.96 108.82 133.17 108.82 133.43C108.82 133.68 108.75 133.89 108.62 134.05C108.48 134.2 108.28 134.28 108.03 134.28M108.03 132.56C107.78 132.56 107.58 132.63 107.43 132.78C107.29 132.93 107.21 133.15 107.21 133.43C107.21 133.7 107.29 133.92 107.43 134.07C107.58 134.22 107.78 134.3 108.03 134.3C108.29 134.3 108.49 134.22 108.63 134.06C108.77 133.9 108.84 133.69 108.84 133.43C108.84 133.17 108.77 132.96 108.63 132.8C108.49 132.64 108.29 132.56 108.03 132.56M108.03 132.59C108.28 132.59 108.47 132.66 108.61 132.82C108.74 132.97 108.81 133.18 108.81 133.43C108.81 133.68 108.74 133.88 108.61 134.04C108.47 134.19 108.28 134.27 108.03 134.27C107.78 134.27 107.59 134.19 107.45 134.05C107.31 133.91 107.24 133.7 107.24 133.43C107.24 133.16 107.31 132.95 107.45 132.8C107.59 132.66 107.78 132.59 108.03 132.59M105.84 142.27C105.79 142.27 105.76 142.24 105.76 142.18L105.76 141.22C105.76 141.17 105.79 141.15 105.84 141.15L107.69 141.15L107.67 135.47L108.93 135.45L108.95 142.27L105.84 142.27"/>
+      <path id="mc-en" d="M4.23 165.64L1.19 157.55L1.14 157.55C1.15 157.72 1.17 157.94 1.18 158.21C1.19 158.48 1.2 158.77 1.21 159.08C1.22 159.4 1.23 159.72 1.23 160.04L1.23 165.64L0.15 165.64L0.15 156.41L1.87 156.41L4.72 163.97L4.77 163.97L7.66 156.41L9.37 156.41L9.37 165.64L8.22 165.64L8.22 159.97C8.22 159.66 8.22 159.37 8.23 159.07C8.24 158.77 8.25 158.49 8.27 158.23C8.29 157.96 8.3 157.74 8.31 157.56L8.26 157.56L5.18 165.64L4.23 165.64M15.18 158.96C15.15 158.89 15.11 158.76 15.05 158.58C14.99 158.4 14.93 158.22 14.87 158.02C14.82 157.83 14.77 157.68 14.74 157.58C14.69 157.75 14.65 157.92 14.6 158.1C14.55 158.28 14.51 158.44 14.46 158.58C14.41 158.73 14.37 158.86 14.34 158.96L13.29 161.75L16.21 161.75L15.18 158.96M17.67 165.64L16.56 162.79L12.9 162.79L11.8 165.64L10.63 165.64L14.23 156.37L15.28 156.37L18.87 165.64L17.67 165.64M13.51 161.6L15.99 161.6L15.03 159.01C15.01 158.94 14.96 158.82 14.9 158.63C14.85 158.47 14.8 158.31 14.75 158.14C14.7 158.32 14.65 158.48 14.6 158.63L14.48 159.01L13.51 161.6M16.43 161.9L13.07 161.9L14.31 158.54C14.36 158.39 14.41 158.23 14.45 158.06C14.5 157.88 14.55 157.71 14.59 157.54L14.72 157.03L14.88 157.53C14.92 157.63 14.96 157.78 15.02 157.98C15.07 158.17 15.13 158.36 15.19 158.53C15.25 158.71 15.29 158.84 15.32 158.91L15.32 158.91L16.43 161.9M17.77 165.49L18.65 165.49L15.17 156.53L14.34 156.53L10.85 165.49L11.7 165.49L12.8 162.63L16.66 162.63L17.77 165.49M19.1 165.79L17.57 165.79L16.46 162.94L13.01 162.94L11.91 165.79L10.4 165.79L14.13 156.22L15.38 156.22L19.1 165.79M22.62 157.42L21.3 157.42L21.3 160.85L22.69 160.85C23.44 160.85 23.99 160.7 24.33 160.4C24.67 160.1 24.85 159.67 24.85 159.09C24.85 158.68 24.77 158.36 24.61 158.12C24.45 157.88 24.2 157.7 23.88 157.59C23.55 157.48 23.13 157.42 22.62 157.42M22.69 156.41C23.45 156.41 24.09 156.51 24.58 156.7C25.08 156.9 25.45 157.19 25.69 157.58C25.93 157.96 26.05 158.45 26.05 159.04C26.05 159.53 25.96 159.94 25.78 160.26C25.6 160.59 25.37 160.85 25.09 161.05C24.81 161.24 24.51 161.39 24.2 161.51L26.73 165.64L25.38 165.64L23.14 161.83L21.3 161.83L21.3 165.64L20.14 165.64L20.14 156.41L22.69 156.41M34.93 165.64L33.56 165.64L30.29 161.23L29.35 162.06L29.35 165.64L28.18 165.64L28.18 156.41L29.35 156.41L29.35 160.96C29.6 160.67 29.87 160.38 30.13 160.08C30.4 159.79 30.67 159.5 30.94 159.2L33.43 156.41L34.79 156.41L31.13 160.43L34.93 165.64M41.34 165.64L36.19 165.64L36.19 156.41L41.34 156.41L41.34 157.43L37.35 157.43L37.35 160.32L41.11 160.32L41.11 161.32L37.35 161.32L37.35 164.62L41.34 164.62L41.34 165.64M46.3 165.64L45.13 165.64L45.13 157.43L42.25 157.43L42.25 156.41L49.17 156.41L49.17 157.43L46.3 157.43L46.3 165.64M45.29 165.49L46.14 165.49L46.14 157.28L49.01 157.28L49.01 156.56L42.4 156.56L42.4 157.28L45.29 157.28L45.29 165.49M46.45 165.79L44.98 165.79L44.98 157.58L42.1 157.58L42.1 156.26L49.32 156.26L49.32 157.58L46.45 157.58L46.45 165.79M53.16 165.64L49.83 165.64L49.83 164.97L50.91 164.72L50.91 157.34L49.83 157.08L49.83 156.41L53.16 156.41L53.16 157.08L52.08 157.34L52.08 164.72L53.16 164.97L53.16 165.64M49.98 165.49L53.01 165.49L53.01 165.09L51.92 164.85L51.92 157.22L53.01 156.96L53.01 156.56L49.98 156.56L49.98 156.96L51.06 157.22L51.06 164.85L49.98 165.09L49.98 165.49M53.31 165.79L49.67 165.79L49.67 164.85L50.76 164.6L50.76 157.46L49.67 157.2L49.67 156.26L53.31 156.26L53.31 157.2L52.23 157.46L52.23 164.6L53.31 164.85L53.31 165.79M62.26 165.64L60.91 165.64L55.97 157.98L55.92 157.98C55.93 158.17 55.95 158.41 55.96 158.68C55.97 158.95 55.99 159.24 56 159.55C56.01 159.85 56.02 160.17 56.02 160.48L56.02 165.64L54.95 165.64L54.95 156.41L56.29 156.41L61.22 164.05L61.27 164.05C61.26 163.91 61.25 163.71 61.24 163.43C61.22 163.16 61.21 162.85 61.2 162.53C61.18 162.2 61.18 161.9 61.18 161.62L61.18 156.41L62.26 156.41L62.26 165.64M68.78 160.77L71.97 160.77L71.97 165.29C71.47 165.46 70.97 165.58 70.46 165.66C69.95 165.73 69.37 165.77 68.73 165.77C67.77 165.77 66.96 165.58 66.31 165.2C65.65 164.81 65.16 164.27 64.82 163.55C64.48 162.84 64.31 162 64.31 161.03C64.31 160.06 64.5 159.23 64.88 158.52C65.25 157.81 65.8 157.26 66.51 156.87C67.22 156.48 68.08 156.28 69.09 156.28C69.61 156.28 70.1 156.33 70.56 156.42C71.02 156.52 71.45 156.65 71.84 156.82L71.4 157.83C71.08 157.69 70.71 157.56 70.3 157.46C69.89 157.36 69.46 157.3 69.03 157.3C68.29 157.3 67.66 157.45 67.14 157.76C66.61 158.06 66.21 158.49 65.94 159.04C65.66 159.6 65.52 160.26 65.52 161.03C65.52 161.76 65.64 162.41 65.88 162.97C66.11 163.54 66.49 163.98 67 164.29C67.5 164.61 68.17 164.76 69 164.76C69.4 164.76 69.75 164.74 70.03 164.7C70.32 164.66 70.58 164.6 70.81 164.54L70.81 161.8L68.78 161.8L68.78 160.77M69.09 156.43C68.11 156.43 67.27 156.63 66.59 157C65.9 157.38 65.37 157.91 65.01 158.59C64.64 159.27 64.46 160.09 64.46 161.03C64.46 161.97 64.62 162.8 64.95 163.49C65.28 164.17 65.76 164.7 66.39 165.07C67.02 165.43 67.8 165.62 68.73 165.62C69.37 165.62 69.94 165.58 70.44 165.51C70.9 165.43 71.37 165.33 71.82 165.18L71.82 160.92L68.93 160.92L68.93 161.65L70.96 161.65L70.96 164.66L70.85 164.69C70.61 164.75 70.34 164.81 70.06 164.85C69.77 164.89 69.41 164.92 69 164.92C68.15 164.92 67.45 164.75 66.92 164.42C66.38 164.09 65.99 163.62 65.74 163.03C65.49 162.45 65.37 161.78 65.37 161.03C65.37 160.24 65.51 159.55 65.8 158.98C66.09 158.39 66.51 157.94 67.06 157.62C67.61 157.31 68.27 157.15 69.03 157.15C69.48 157.15 69.92 157.21 70.34 157.31C70.7 157.4 71.03 157.51 71.33 157.63L71.64 156.91C71.3 156.77 70.92 156.66 70.53 156.57C70.08 156.48 69.6 156.43 69.09 156.43M68.73 165.92C67.75 165.92 66.91 165.72 66.23 165.33C65.56 164.93 65.03 164.36 64.68 163.62C64.33 162.89 64.15 162.02 64.15 161.03C64.15 160.04 64.35 159.17 64.74 158.45C65.13 157.72 65.7 157.14 66.44 156.74C67.17 156.33 68.06 156.13 69.09 156.13C69.62 156.13 70.12 156.18 70.59 156.28C71.06 156.37 71.5 156.51 71.91 156.69L72.05 156.75L71.48 158.04L71.34 157.97C71.02 157.83 70.66 157.71 70.26 157.61C69.87 157.51 69.45 157.46 69.03 157.46C68.32 157.46 67.71 157.6 67.21 157.89C66.72 158.17 66.33 158.59 66.07 159.11C65.81 159.64 65.67 160.29 65.67 161.03C65.67 161.74 65.79 162.37 66.02 162.91C66.24 163.45 66.6 163.87 67.08 164.16C67.56 164.46 68.21 164.61 69 164.61C69.4 164.61 69.74 164.59 70.01 164.55C70.24 164.51 70.46 164.47 70.66 164.43L70.66 161.95L68.63 161.95L68.63 160.62L72.13 160.62L72.13 165.4L72.02 165.44C71.52 165.6 71 165.73 70.48 165.81C69.97 165.88 69.38 165.92 68.73 165.92M82.54 157.3C81.88 157.3 81.31 157.45 80.84 157.75C80.36 158.05 79.99 158.47 79.73 159.03C79.47 159.59 79.34 160.25 79.34 161.03C79.34 161.79 79.46 162.44 79.7 163.01C79.94 163.57 80.29 164 80.76 164.3C81.23 164.6 81.82 164.75 82.52 164.75C82.93 164.75 83.31 164.72 83.67 164.65C84.04 164.58 84.39 164.49 84.73 164.39L84.73 165.4C84.39 165.53 84.03 165.62 83.67 165.68C83.3 165.74 82.86 165.77 82.36 165.77C81.42 165.77 80.63 165.58 80 165.19C79.37 164.8 78.9 164.25 78.59 163.54C78.27 162.82 78.11 161.98 78.11 161.01C78.11 160.08 78.29 159.26 78.63 158.55C78.97 157.84 79.47 157.28 80.13 156.88C80.8 156.48 81.6 156.28 82.55 156.28C83.02 156.28 83.48 156.33 83.92 156.42C84.36 156.52 84.75 156.65 85.1 156.82L84.63 157.81C84.35 157.68 84.03 157.56 83.68 157.46C83.33 157.36 82.95 157.3 82.54 157.3M82.55 156.43C81.63 156.43 80.85 156.63 80.21 157.01C79.57 157.4 79.09 157.94 78.76 158.62C78.43 159.3 78.27 160.11 78.27 161.01C78.27 161.96 78.42 162.78 78.73 163.47C79.03 164.16 79.48 164.69 80.08 165.06C80.68 165.43 81.45 165.62 82.36 165.62C82.85 165.62 83.29 165.59 83.64 165.53C83.96 165.48 84.28 165.4 84.58 165.29L84.58 164.59C84.29 164.67 84 164.74 83.7 164.8C83.33 164.87 82.94 164.9 82.52 164.9C81.79 164.9 81.17 164.74 80.68 164.43C80.18 164.11 79.81 163.65 79.56 163.06C79.31 162.49 79.19 161.8 79.19 161.03C79.19 160.23 79.33 159.54 79.59 158.97C79.86 158.38 80.25 157.93 80.76 157.62C81.26 157.31 81.85 157.15 82.54 157.15C82.96 157.15 83.36 157.21 83.72 157.31C84.02 157.4 84.3 157.5 84.56 157.61L84.89 156.9C84.59 156.76 84.26 156.65 83.89 156.57C83.46 156.48 83.01 156.43 82.55 156.43M82.36 165.92C81.39 165.92 80.57 165.72 79.92 165.32C79.27 164.92 78.77 164.34 78.45 163.6C78.13 162.87 77.96 162 77.96 161.01C77.96 160.06 78.14 159.21 78.49 158.49C78.84 157.75 79.37 157.17 80.05 156.75C80.74 156.34 81.58 156.13 82.55 156.13C83.03 156.13 83.5 156.18 83.95 156.28C84.4 156.37 84.81 156.51 85.16 156.69L85.3 156.76L84.7 158.01L84.57 157.95C84.29 157.82 83.98 157.71 83.64 157.61C83.3 157.51 82.93 157.46 82.54 157.46C81.91 157.46 81.37 157.6 80.92 157.88C80.47 158.16 80.11 158.57 79.87 159.09C79.62 159.63 79.5 160.28 79.5 161.03C79.5 161.76 79.61 162.41 79.84 162.95C80.06 163.48 80.4 163.89 80.84 164.17C81.28 164.45 81.85 164.6 82.52 164.6C82.92 164.6 83.29 164.57 83.65 164.5C84 164.43 84.35 164.35 84.69 164.24L84.89 164.18L84.89 165.5L84.79 165.54C84.43 165.67 84.07 165.77 83.69 165.83C83.32 165.89 82.87 165.92 82.36 165.92M86.75 165.64L86.75 156.41L87.91 156.41L87.91 164.61L91.95 164.61L91.95 165.64L86.75 165.64M100.42 162.38C100.42 163.02 100.29 163.6 100.03 164.11C99.77 164.62 99.38 165.03 98.85 165.33C98.32 165.62 97.64 165.77 96.82 165.77C95.68 165.77 94.8 165.46 94.2 164.83C93.61 164.21 93.31 163.38 93.31 162.36L93.31 156.41L94.47 156.41L94.47 162.4C94.47 163.15 94.67 163.73 95.07 164.14C95.47 164.56 96.08 164.76 96.89 164.76C97.72 164.76 98.33 164.54 98.7 164.1C99.08 163.65 99.27 163.08 99.27 162.38L99.27 156.41L100.42 156.41L100.42 162.38M93.46 156.56L93.46 162.36C93.46 163.34 93.75 164.14 94.31 164.73C94.88 165.32 95.72 165.62 96.82 165.62C97.61 165.62 98.27 165.48 98.77 165.19C99.27 164.91 99.65 164.53 99.89 164.04C100.14 163.55 100.26 163 100.26 162.38L100.26 156.56L99.42 156.56L99.42 162.38C99.42 163.12 99.22 163.73 98.82 164.2C98.42 164.67 97.77 164.92 96.89 164.92C96.04 164.92 95.39 164.69 94.96 164.25C94.53 163.81 94.32 163.18 94.32 162.4L94.32 156.56L93.46 156.56M96.82 165.92C95.64 165.92 94.72 165.59 94.1 164.94C93.47 164.29 93.15 163.42 93.15 162.36L93.15 156.26L94.62 156.26L94.62 162.4C94.62 163.1 94.81 163.65 95.18 164.04C95.55 164.42 96.12 164.61 96.89 164.61C97.67 164.61 98.25 164.41 98.59 164C98.94 163.59 99.11 163.04 99.11 162.38L99.11 156.26L100.57 156.26L100.57 162.38C100.57 163.04 100.43 163.65 100.16 164.18C99.89 164.72 99.47 165.15 98.92 165.46C98.37 165.77 97.66 165.92 96.82 165.92M104.01 161.31L104.01 164.66L105.87 164.66C106.69 164.66 107.26 164.5 107.58 164.18C107.9 163.86 108.06 163.44 108.06 162.93C108.06 162.6 107.99 162.32 107.84 162.07C107.7 161.83 107.47 161.65 107.13 161.51C106.8 161.38 106.35 161.31 105.78 161.31L104.01 161.31M105.72 160.34C106.51 160.34 107.05 160.21 107.35 159.96C107.64 159.71 107.79 159.33 107.79 158.83C107.79 158.32 107.61 157.96 107.25 157.74C106.89 157.52 106.32 157.41 105.54 157.41L104.01 157.41L104.01 160.34L105.72 160.34M105.49 156.41C106.64 156.41 107.51 156.58 108.1 156.92C108.69 157.26 108.99 157.86 108.99 158.7C108.99 159.06 108.92 159.38 108.79 159.66C108.66 159.94 108.46 160.18 108.19 160.36C107.93 160.55 107.61 160.67 107.23 160.74L107.23 160.81C107.62 160.87 107.97 160.98 108.28 161.14C108.6 161.31 108.85 161.54 109.03 161.84C109.21 162.14 109.3 162.54 109.3 163.02C109.3 163.58 109.17 164.05 108.91 164.45C108.65 164.84 108.28 165.14 107.81 165.34C107.33 165.54 106.76 165.64 106.09 165.64L102.85 165.64L102.85 156.41L105.49 156.41"/>
+      <linearGradient id="mcg-lin" x1="1" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#4300a3"/>
+        <stop offset="0.42" stop-color="#7212dd"/>
+        <stop offset="0.62" stop-color="#6D0DD6"/>
+        <stop offset="1" stop-color="#3d0096"/>
+      </linearGradient>
+      <radialGradient id="mcg-left" cx="0.12" cy="0.38" r="0.45">
+        <stop offset="0" stop-color="#5a3bcc" stop-opacity="0.75"/>
+        <stop offset="1" stop-color="#5a3bcc" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="mcg-core" cx="0.5" cy="0.47" r="0.32">
+        <stop offset="0" stop-color="#7a06e2" stop-opacity="0.95"/>
+        <stop offset="1" stop-color="#7a06e2" stop-opacity="0"/>
+      </radialGradient>
+      <g id="mc-mark-grad">
+        <use href="#mc-mark-path" fill="url(#mcg-lin)"/>
+        <use href="#mc-mark-path" fill="url(#mcg-left)"/>
+        <use href="#mc-mark-path" fill="url(#mcg-core)"/>
+      </g>
+    </defs>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2.5"/><path d="M8 11V7.5a4 4 0 0 1 8 0V11"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M19 12H5"/><path d="m12 19-7-7 7-7"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path fill="currentColor" stroke="none" d="M18.24 2.25h3.31l-7.23 8.26 8.5 11.24h-6.65l-5.21-6.82-5.97 6.82H1.68l7.73-8.84L1.25 2.25h6.83l4.71 6.23zm-1.16 17.52h1.83L7.08 4.13H5.12z"/></symbol>
+  </svg>
+
+  <h1 class="sr-only">معاينة تصاميم التسجيل في نادي التسويق</h1>
+
+  <header class="harness-head">
+    <svg class="lockup-h" viewBox="0 126.5 169 44.5" role="img" aria-label="نادي التسويق، Marketing Club">
+      <use class="wm" href="#mc-ar"/><use class="wm" href="#mc-en"/>
+      <g transform="translate(107.2 95.95) scale(0.667)"><use class="mk" href="#mc-mark-path"/></g>
+    </svg>
+    <p class="harness-title">معاينة تصاميم التسجيل<br>من دليل الهوية</p>
+  </header>
+
+  <nav class="preview-nav" aria-label="التصاميم">
+    <button type="button" class="nav-btn active" data-target="screen-1" aria-pressed="true">البنفسجي العميق</button>
+    <button type="button" class="nav-btn" data-target="screen-2" aria-pressed="false">الدوائر</button>
+    <button type="button" class="nav-btn" data-target="screen-3" aria-pressed="false">صفحات الدليل</button>
+    <button type="button" class="nav-btn" data-target="screen-4" aria-pressed="false">تم الإرسال</button>
+    <button type="button" class="nav-btn" data-target="screen-5" aria-pressed="false">التسجيل مغلق</button>
+  </nav>
+
+  <div class="state-theme" id="state-theme" hidden>
+    <span id="state-theme-label">اعرض الشاشة بنمط:</span>
+    <div class="seg" role="group" aria-labelledby="state-theme-label">
+      <button type="button" data-theme-set="deep" aria-pressed="true">البنفسجي العميق</button>
+      <button type="button" data-theme-set="circles" aria-pressed="false">الدوائر</button>
+      <button type="button" data-theme-set="guide" aria-pressed="false">صفحات الدليل</button>
+    </div>
+  </div>
+
+  <!-- ========== الشاشة 1: البنفسجي العميق ========== -->
+  <section id="screen-1" class="screen-container active-screen" aria-label="تصميم البنفسجي العميق">
+    <form id="f1" class="frame v-deep" data-theme="deep" novalidate>
+      <svg class="layer deep-ribbon" viewBox="1366 536 618 598" preserveAspectRatio="xMaxYMax slice" aria-hidden="true"><path d="M1532.2 1436.2C1443.1 1266.5 1342.6 1000.4 1407.4 810.8C1428.6 747.9 1473.5 693.2 1533.2 663.5C1721.9 568.1 2010.8 683.1 2163.2 807.3C2213.8 848.4 2260.2 896.7 2291.4 954.2C2291.4 954.2 2279.6 961.7 2279.6 961.7C2261 936.7 2238.9 914.6 2215.2 894.8C2099.1 800.5 1941.3 745.6 1792.9 737.4C1732.1 735.2 1668.2 739.7 1615.2 769.3C1593.1 781.8 1575.6 800.7 1566.7 824.5C1532.4 921.3 1602.2 1068.4 1650.8 1154.5C1679.6 1204.8 1712.4 1253.8 1747.7 1299.4L1532.2 1436.2" fill="#FFE286"/></svg>
+      <div class="content">
+        <svg class="lockup-v" viewBox="0 46.5 109.5 120" role="img" aria-label="نادي التسويق، Marketing Club">
+          <use class="mk" href="#mc-mark-path"/><use class="wm" href="#mc-ar"/><use class="wm" href="#mc-en"/>
+        </svg>
+        <h2 class="title">اصنع تجارب ملهمة</h2>
+        <p class="subtitle">انضم إلى مجتمع الشغف والابتكار</p>
+        <div class="fields">
+          <div class="field" data-field="name">
+            <label for="f1-name">الاسم الثلاثي</label>
+            <input id="f1-name" name="name" type="text" autocomplete="name" enterkeyhint="next"
+                   placeholder="مثال: نوره حسن العتيبي" aria-describedby="f1-name-err">
+            <p class="err" id="f1-name-err"></p>
+          </div>
+          <div class="field" data-field="studentId">
+            <label for="f1-id">الرقم الجامعي</label>
+            <input id="f1-id" name="studentId" type="text" dir="ltr" inputmode="numeric" autocomplete="off"
+                   enterkeyhint="next" placeholder="441234567" aria-describedby="f1-id-err">
+            <p class="err" id="f1-id-err"></p>
+          </div>
+          <div class="field" data-field="mobile">
+            <label for="f1-mobile">رقم الجوال <span class="hint">(نتواصل معك عليه)</span></label>
+            <input id="f1-mobile" name="mobile" type="tel" dir="ltr" inputmode="tel" autocomplete="tel-national"
+                   enterkeyhint="send" placeholder="05xxxxxxxx" aria-describedby="f1-mobile-err">
+            <p class="err" id="f1-mobile-err"></p>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div class="form-alert" role="alert" hidden><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
+        <button type="submit" class="btn btn-wide deep-btn btn-submit">
+          <span class="btn-label">تأكيد التسجيل الآن</span><span class="spinner" aria-hidden="true"></span>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ========== الشاشة 2: الدوائر ========== -->
+  <section id="screen-2" class="screen-container" aria-label="تصميم الدوائر" hidden>
+    <form id="f2" class="frame v-circles" data-theme="circles" novalidate>
+      <svg class="layer circles-art" viewBox="0 0 968 975" aria-hidden="true"><path d="M705.8 746.4C729.3 746.3 748.2 727.2 748.1 703.8C748 680.3 728.9 661.4 705.4 661.5C681.9 661.6 663 680.7 663.1 704.2C663.3 727.6 682.4 746.5 705.8 746.4M705.1 586.6C769.8 586.3 822.7 638.7 823 703.4C823.4 768.1 771 821 706.2 821.3C641.9 821.6 589.3 769.9 588.3 705.7L587.8 705.7L587.8 704.5L588.3 704.5C588 639.8 640.4 586.9 705.1 586.6" fill="#6d0dd6"/><path d="M522 704.8C522.5 806.3 605.1 888.1 706.5 887.6C808 887.1 889.8 804.5 889.3 703.1C888.8 601.6 806.2 519.8 704.8 520.3C603.3 520.8 521.5 603.4 522 704.8M704.5 450.3C729.8 450.1 754.3 453.7 777.5 460.6L777.5 460.6C840.5 479.1 893.4 521.6 925.6 577.4C946.9 614.3 959.1 657.1 959.4 702.7C959.6 746.1 948.9 787 929.9 822.8C887.5 902.6 803.6 957.2 706.9 957.6C631 958 562.8 925 516.1 872.5C503.1 857.9 491.9 841.9 482.5 824.7C463.2 789.1 452.2 748.5 452 705.2C451.8 659.6 463.6 616.8 484.4 579.8C492.9 564.7 502.8 550.6 514.1 537.6C549.2 497.3 596.8 468.1 650.9 456.2C668.2 452.4 686.1 450.3 704.5 450.3" fill="#6d0dd6"/><path d="M776.1 465.1C753 458.2 728.9 454.8 704.5 455C686.8 455 669.1 457 652 460.8C600.3 472.1 552.6 500.5 517.6 540.7C506.6 553.5 496.8 567.4 488.5 582.1C467.5 619.4 456.5 662 456.7 705.1C456.9 746.1 467.3 786.7 486.7 822.5C495.8 839.3 506.8 855 519.6 869.4C567.1 922.8 635.4 953.3 706.9 952.9C798.7 952.5 882.6 901.8 925.7 820.6C944.9 784.6 954.9 743.8 954.7 702.7C954.5 659.5 943 617 921.6 579.8C889.5 524.1 838.1 483.5 776.8 465.2L776.1 465.1M704.4 445.6C729.5 445.4 754.3 448.9 778.1 455.9L778.8 456.1C842.7 474.9 896.3 517.2 929.7 575.1C952 613.7 963.9 657.8 964.1 702.7C964.3 745.3 953.9 787.6 934 825C889.3 909.2 802.3 961.9 706.9 962.3C632.7 962.7 561.9 931.1 512.6 875.6C499.3 860.8 487.8 844.4 478.4 827C458.3 789.8 447.5 747.7 447.3 705.2C447.1 660.4 458.5 616.3 480.3 577.5C488.9 562.2 499.1 547.8 510.5 534.6C546.8 492.9 596.3 463.4 649.9 451.6C667.7 447.7 686.1 445.6 704.4 445.6" fill="#6d0dd6"/><path d="M263 219.2C239.5 219.3 220.6 238.4 220.7 261.8C220.8 285.3 239.9 304.2 263.4 304.1C286.8 304 305.8 284.9 305.6 261.4C305.5 238 286.4 219 263 219.2M263.7 379C199 379.3 146.1 326.9 145.7 262.2C145.4 197.5 197.8 144.6 262.5 144.2C326.9 143.9 379.5 195.7 380.5 259.9L380.9 259.9L380.9 261.1L380.5 261.1C380.8 325.8 328.4 378.7 263.7 379" fill="#6d0dd6"/><path d="M446.8 260.7C446.3 159.3 363.7 77.5 262.3 78C160.8 78.4 79 161.1 79.5 262.5C80 363.9 162.6 445.8 264 445.3C365.5 444.8 447.3 362.2 446.8 260.7M264.3 515.3C239 515.4 214.5 511.8 191.3 505L191.3 505C128.3 486.4 75.4 444 43.2 388.1C21.9 351.2 9.6 308.5 9.4 262.9C9.2 219.5 19.9 178.6 38.9 142.8C81.3 63 165.1 8.4 261.9 7.9C337.7 7.6 406 40.5 452.7 93.1C465.7 107.6 476.9 123.6 486.3 140.9C505.6 176.4 516.6 217.1 516.8 260.4C517 305.9 505.2 348.7 484.4 385.8C475.9 400.8 466 415 454.7 427.9C419.6 468.3 372 497.5 317.8 509.4C300.6 513.2 282.7 515.2 264.3 515.3" fill="#6d0dd6"/><path d="M192.7 500.5C215.8 507.3 239.9 510.7 264.3 510.6C282 510.5 299.7 508.6 316.8 504.8C368.5 493.4 416.2 465 451.1 424.8C462.2 412.1 472 398.2 480.3 383.5C501.3 346.1 512.3 303.6 512.1 260.4C511.9 219.4 501.5 178.9 482.1 143.1C473 126.3 461.9 110.5 449.2 96.2C401.7 42.8 333.4 12.3 261.9 12.6C170 13.1 86.2 63.8 43.1 145C23.9 181 13.9 221.8 14.1 262.8C14.3 306.1 25.8 348.6 47.2 385.8C79.3 441.4 130.7 482.1 192 500.3L192.7 500.5M264.4 520C239.3 520.1 214.5 516.7 190.7 509.7L190 509.5C126.1 490.7 72.5 448.4 39.1 390.5C16.8 351.9 4.9 307.7 4.7 262.9C4.5 220.3 14.9 178 34.7 140.6C79.5 56.3 166.5 3.7 261.9 3.2C336.1 2.9 406.9 34.5 456.2 90C469.5 104.8 480.9 121.2 490.4 138.6C510.5 175.7 521.3 217.8 521.5 260.4C521.7 305.1 510.3 349.3 488.5 388.1C479.9 403.3 469.7 417.8 458.2 431C422 472.7 372.5 502.2 318.8 514C301.1 517.9 282.7 519.9 264.4 520" fill="#6d0dd6"/><path d="M490.8 580.7C481.4 563.3 469.9 546.9 456.7 532C407.5 476.7 336.9 445.1 263 445.3L263 520C364.2 519.6 446.8 601.5 447.2 702.8L447.2 703.9L521.9 703.9L521.9 702.4C521.7 659.9 511 617.8 490.8 580.7" fill="#004950"/><path d="M139.7 476.4C122.3 485.9 105.9 497.4 91 510.6C35.8 559.8 4.1 630.3 4.3 704.3L79 704.3C78.7 603 160.5 520.5 261.8 520L263 520L263 445.3L261.4 445.3C218.9 445.5 176.8 456.3 139.7 476.4" fill="#6bc9ed"/><path d="M521.9 705.5L521.9 703.9L447.2 703.9L447.2 705.1C446.8 806.4 364.2 888.2 263 887.9L263 962.6C336.9 962.8 407.5 931.1 456.7 875.9C469.9 861 481.4 844.6 490.8 827.2C511 790.1 521.7 748 521.9 705.5" fill="#f36d24"/><path d="M490.2 1022.5C480.7 1005.1 469.2 988.7 455.9 973.9C406.6 918.7 336 887.3 262 887.6L262.2 962.3C363.5 961.8 446.2 1043.4 446.9 1144.7L446.9 1145.9L521.6 1145.7L521.6 1144.2C521.3 1101.7 510.4 1059.6 490.2 1022.5" fill="#6d0dd6"/><path d="M477.7 384.9C487.2 402.3 498.7 418.7 511.9 433.5C561.1 488.8 631.6 520.5 705.6 520.3L705.6 445.6C604.3 445.9 521.8 364.1 521.3 262.8L521.3 261.6L446.6 261.6L446.6 263.1C446.8 305.7 457.6 347.8 477.7 384.9" fill="#fee387"/><path d="M828.8 489.1C846.3 479.7 862.7 468.2 877.5 455C932.8 405.8 964.4 335.3 964.3 261.3L889.5 261.3C889.9 362.6 808.1 445.1 706.7 445.6L705.6 445.6L705.6 520.2L707.1 520.2C749.6 520.1 791.7 509.3 828.8 489.1" fill="#6bc9ed"/><path d="M446.6 260.1L446.6 261.6L521.3 261.6L521.3 260.5C521.8 159.1 604.3 77.3 705.6 77.7L705.6 3C631.6 2.8 561.1 34.4 511.9 89.7C498.7 104.6 487.2 120.9 477.7 138.4C457.6 175.5 446.8 217.6 446.6 260.1" fill="#004950"/></svg>
+      <div class="content">
+        <svg class="lockup-v" viewBox="0 46.5 109.5 120" role="img" aria-label="نادي التسويق، Marketing Club">
+          <use href="#mc-mark-grad"/><use class="wm" href="#mc-ar"/><use class="wm" href="#mc-en"/>
+        </svg>
+        <div class="circles-titlebar">
+          <h2 class="title">مكانك هنا معنا..<br>جاهز تبدع؟</h2>
+          <div class="progress-ring" aria-hidden="true">
+            <svg viewBox="0 0 64 64">
+              <circle class="track" cx="32" cy="32" r="24" pathLength="300"/>
+              <circle class="seg-arc s1" cx="32" cy="32" r="24" pathLength="300"/>
+              <circle class="seg-arc s2" cx="32" cy="32" r="24" pathLength="300"/>
+              <circle class="seg-arc s3" cx="32" cy="32" r="24" pathLength="300"/>
+            </svg>
+            <bdi class="count" dir="ltr">0/3</bdi>
+          </div>
+        </div>
+        <p class="subtitle">ثلاث معلومات بس، وتصير معنا</p>
+        <p class="sr-only" aria-live="polite" data-progress-text></p>
+        <div class="fields">
+          <div class="field c-card" data-field="name">
+            <label for="f2-name">وش اسمك المبدع؟</label>
+            <input id="f2-name" name="name" type="text" autocomplete="name" enterkeyhint="next"
+                   placeholder="اسمك الثلاثي" aria-describedby="f2-name-err">
+            <p class="err" id="f2-name-err"></p>
+          </div>
+          <div class="field c-card" data-field="studentId">
+            <label for="f2-id">رقمك الجامعي</label>
+            <input id="f2-id" name="studentId" type="text" dir="ltr" inputmode="numeric" autocomplete="off"
+                   enterkeyhint="next" placeholder="441234567" aria-describedby="f2-id-err">
+            <p class="err" id="f2-id-err"></p>
+          </div>
+          <div class="field c-card" data-field="mobile">
+            <label for="f2-mobile">رقم الجوال أو الواتساب</label>
+            <input id="f2-mobile" name="mobile" type="tel" dir="ltr" inputmode="tel" autocomplete="tel-national"
+                   enterkeyhint="send" placeholder="05xxxxxxxx" aria-describedby="f2-mobile-err">
+            <p class="err" id="f2-mobile-err"></p>
+          </div>
+        </div>
+      </div>
+      <div class="footer">
+        <div class="form-alert" role="alert" hidden><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
+        <button type="submit" class="btn btn-wide circles-btn btn-submit">
+          <span class="btn-label">انطلق وسجّل معنا</span><span class="spinner" aria-hidden="true"></span>
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ========== الشاشة 3: صفحات الدليل (3 خطوات) ========== -->
+  <section id="screen-3" class="screen-container" aria-label="تصميم صفحات الدليل" hidden>
+    <form id="f3" class="frame v-guide" data-theme="guide" novalidate>
+      <svg class="layer guide-ribbon" viewBox="0 0 620 600" preserveAspectRatio="xMinYMin slice" aria-hidden="true"><path d="M-151.8 207.3C-45.2 297.2 90.1 389.5 227.1 420C278.1 429.8 329.7 431.3 368.6 396C399.9 366.3 414.7 320.9 422.9 278.8C452.8 106.9 394 -114 290.5 -254.1C271.3 -279.7 249.6 -303.6 224.8 -324.2L233.1 -335.9C261.9 -318.5 288.2 -296.9 312.3 -273.2C360.4 -225.3 399.8 -169.2 432.6 -109.8C531.6 68.5 614.8 391.3 426.4 538.8C365.2 585.8 285.7 601.2 210.6 599.3C62.1 594.1 -78.9 539.7 -210.1 474.6C-242 458.4 -273.4 441.2 -304.4 422.7L-151.8 207.3" fill="#483B70"/></svg>
+      <div class="content">
+        <svg class="lockup-h" viewBox="0 126.5 169 44.5" role="img" aria-label="نادي التسويق، Marketing Club">
+          <use class="wm" href="#mc-ar"/><use class="wm" href="#mc-en"/>
+          <g transform="translate(107.2 95.95) scale(0.667)"><use href="#mc-mark-grad"/></g>
+        </svg>
+        <h2 class="title">طلب الترشح<br>للعضوية الفاعلة</h2>
+
+        <div class="g-stepper">
+        <span class="g-progress" aria-hidden="true"></span>
+        <ol class="g-steps" aria-label="خطوات الطلب">
+          <li class="g-step current" aria-current="step"><span class="g-dot"></span><svg class="g-arc" viewBox="0 0 26 26" aria-hidden="true"><path d="M26 26A24 24 0 0 0 2 2"/></svg><span class="g-label">بياناتك</span></li>
+          <li class="g-step"><span class="g-dot"></span><svg class="g-arc" viewBox="0 0 26 26" aria-hidden="true"><path d="M26 0A24 24 0 0 1 2 24"/></svg><span class="g-label">التواصل</span></li>
+          <li class="g-step"><span class="g-dot"></span><svg class="g-arc" viewBox="0 0 26 26" aria-hidden="true"><path d="M26 26A24 24 0 0 0 2 2"/></svg><span class="g-label">المراجعة</span></li>
+        </ol>
+        </div>
+        <p class="sr-only" aria-live="polite" data-step-text>خطوة 1 من 3</p>
+
+        <div class="g-panel" data-step="0">
+          <h3 class="g-panel-title" tabindex="-1">عرّفنا بنفسك</h3>
+          <div class="field" data-field="name">
+            <label for="f3-name">الاسم الثلاثي</label>
+            <input id="f3-name" name="name" type="text" autocomplete="name" enterkeyhint="next"
+                   placeholder="الاسم كما يظهر بالسجل الأكاديمي" aria-describedby="f3-name-err">
+            <p class="err" id="f3-name-err"></p>
+          </div>
+          <div class="field" data-field="studentId">
+            <label for="f3-id">الرقم الجامعي</label>
+            <input id="f3-id" name="studentId" type="text" dir="ltr" inputmode="numeric" autocomplete="off"
+                   enterkeyhint="next" placeholder="441234567" aria-describedby="f3-id-err">
+            <p class="err" id="f3-id-err"></p>
+          </div>
+        </div>
+
+        <div class="g-panel" data-step="1" hidden>
+          <h3 class="g-panel-title" tabindex="-1">كيف نتواصل معك؟</h3>
+          <div class="field" data-field="mobile">
+            <label for="f3-mobile">رقم الجوال</label>
+            <input id="f3-mobile" name="mobile" type="tel" dir="ltr" inputmode="tel" autocomplete="tel-national"
+                   enterkeyhint="next" placeholder="05xxxxxxxx" aria-describedby="f3-mobile-err">
+            <p class="err" id="f3-mobile-err"></p>
+          </div>
+        </div>
+
+        <div class="g-panel" data-step="2" hidden>
+          <h3 class="g-panel-title" tabindex="-1">راجع طلبك قبل الإرسال</h3>
+          <dl class="g-review">
+            <div><dt>الاسم الثلاثي</dt><dd data-review="name"></dd><button type="button" class="g-edit" data-goto="0">تعديل</button></div>
+            <div><dt>الرقم الجامعي</dt><dd><bdi dir="ltr" data-review="studentId"></bdi></dd><button type="button" class="g-edit" data-goto="0">تعديل</button></div>
+            <div><dt>رقم الجوال</dt><dd><bdi dir="ltr" data-review="mobile"></bdi></dd><button type="button" class="g-edit" data-goto="1">تعديل</button></div>
+          </dl>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="g-undo-bar" role="status" hidden><span>تم مسح البيانات.</span><button type="button" class="g-undo">تراجع</button></div>
+        <div class="form-alert" role="alert" hidden><svg class="ico" aria-hidden="true"><use href="#i-alert"/></svg><span></span></div>
+        <div class="g-footer">
+          <button type="button" class="g-back">إلغاء</button>
+          <button type="submit" class="btn guide-btn btn-submit">
+            <span class="btn-label">التالي</span>
+            <svg class="ico btn-ico" aria-hidden="true"><use href="#i-arrow"/></svg>
+            <span class="spinner" aria-hidden="true"></span>
+          </button>
+        </div>
+      </div>
+    </form>
+  </section>
+
+  <!-- ========== الشاشة 4: تم الإرسال ========== -->
+  <section id="screen-4" class="screen-container" aria-labelledby="s4-title" hidden>
+    <div class="frame s-frame t-deep" data-state-frame>
+      <svg class="layer circles-art" viewBox="0 0 968 975" aria-hidden="true"><path d="M705.8 746.4C729.3 746.3 748.2 727.2 748.1 703.8C748 680.3 728.9 661.4 705.4 661.5C681.9 661.6 663 680.7 663.1 704.2C663.3 727.6 682.4 746.5 705.8 746.4M705.1 586.6C769.8 586.3 822.7 638.7 823 703.4C823.4 768.1 771 821 706.2 821.3C641.9 821.6 589.3 769.9 588.3 705.7L587.8 705.7L587.8 704.5L588.3 704.5C588 639.8 640.4 586.9 705.1 586.6" fill="#6d0dd6"/><path d="M522 704.8C522.5 806.3 605.1 888.1 706.5 887.6C808 887.1 889.8 804.5 889.3 703.1C888.8 601.6 806.2 519.8 704.8 520.3C603.3 520.8 521.5 603.4 522 704.8M704.5 450.3C729.8 450.1 754.3 453.7 777.5 460.6L777.5 460.6C840.5 479.1 893.4 521.6 925.6 577.4C946.9 614.3 959.1 657.1 959.4 702.7C959.6 746.1 948.9 787 929.9 822.8C887.5 902.6 803.6 957.2 706.9 957.6C631 958 562.8 925 516.1 872.5C503.1 857.9 491.9 841.9 482.5 824.7C463.2 789.1 452.2 748.5 452 705.2C451.8 659.6 463.6 616.8 484.4 579.8C492.9 564.7 502.8 550.6 514.1 537.6C549.2 497.3 596.8 468.1 650.9 456.2C668.2 452.4 686.1 450.3 704.5 450.3" fill="#6d0dd6"/><path d="M776.1 465.1C753 458.2 728.9 454.8 704.5 455C686.8 455 669.1 457 652 460.8C600.3 472.1 552.6 500.5 517.6 540.7C506.6 553.5 496.8 567.4 488.5 582.1C467.5 619.4 456.5 662 456.7 705.1C456.9 746.1 467.3 786.7 486.7 822.5C495.8 839.3 506.8 855 519.6 869.4C567.1 922.8 635.4 953.3 706.9 952.9C798.7 952.5 882.6 901.8 925.7 820.6C944.9 784.6 954.9 743.8 954.7 702.7C954.5 659.5 943 617 921.6 579.8C889.5 524.1 838.1 483.5 776.8 465.2L776.1 465.1M704.4 445.6C729.5 445.4 754.3 448.9 778.1 455.9L778.8 456.1C842.7 474.9 896.3 517.2 929.7 575.1C952 613.7 963.9 657.8 964.1 702.7C964.3 745.3 953.9 787.6 934 825C889.3 909.2 802.3 961.9 706.9 962.3C632.7 962.7 561.9 931.1 512.6 875.6C499.3 860.8 487.8 844.4 478.4 827C458.3 789.8 447.5 747.7 447.3 705.2C447.1 660.4 458.5 616.3 480.3 577.5C488.9 562.2 499.1 547.8 510.5 534.6C546.8 492.9 596.3 463.4 649.9 451.6C667.7 447.7 686.1 445.6 704.4 445.6" fill="#6d0dd6"/><path d="M263 219.2C239.5 219.3 220.6 238.4 220.7 261.8C220.8 285.3 239.9 304.2 263.4 304.1C286.8 304 305.8 284.9 305.6 261.4C305.5 238 286.4 219 263 219.2M263.7 379C199 379.3 146.1 326.9 145.7 262.2C145.4 197.5 197.8 144.6 262.5 144.2C326.9 143.9 379.5 195.7 380.5 259.9L380.9 259.9L380.9 261.1L380.5 261.1C380.8 325.8 328.4 378.7 263.7 379" fill="#6d0dd6"/><path d="M446.8 260.7C446.3 159.3 363.7 77.5 262.3 78C160.8 78.4 79 161.1 79.5 262.5C80 363.9 162.6 445.8 264 445.3C365.5 444.8 447.3 362.2 446.8 260.7M264.3 515.3C239 515.4 214.5 511.8 191.3 505L191.3 505C128.3 486.4 75.4 444 43.2 388.1C21.9 351.2 9.6 308.5 9.4 262.9C9.2 219.5 19.9 178.6 38.9 142.8C81.3 63 165.1 8.4 261.9 7.9C337.7 7.6 406 40.5 452.7 93.1C465.7 107.6 476.9 123.6 486.3 140.9C505.6 176.4 516.6 217.1 516.8 260.4C517 305.9 505.2 348.7 484.4 385.8C475.9 400.8 466 415 454.7 427.9C419.6 468.3 372 497.5 317.8 509.4C300.6 513.2 282.7 515.2 264.3 515.3" fill="#6d0dd6"/><path d="M192.7 500.5C215.8 507.3 239.9 510.7 264.3 510.6C282 510.5 299.7 508.6 316.8 504.8C368.5 493.4 416.2 465 451.1 424.8C462.2 412.1 472 398.2 480.3 383.5C501.3 346.1 512.3 303.6 512.1 260.4C511.9 219.4 501.5 178.9 482.1 143.1C473 126.3 461.9 110.5 449.2 96.2C401.7 42.8 333.4 12.3 261.9 12.6C170 13.1 86.2 63.8 43.1 145C23.9 181 13.9 221.8 14.1 262.8C14.3 306.1 25.8 348.6 47.2 385.8C79.3 441.4 130.7 482.1 192 500.3L192.7 500.5M264.4 520C239.3 520.1 214.5 516.7 190.7 509.7L190 509.5C126.1 490.7 72.5 448.4 39.1 390.5C16.8 351.9 4.9 307.7 4.7 262.9C4.5 220.3 14.9 178 34.7 140.6C79.5 56.3 166.5 3.7 261.9 3.2C336.1 2.9 406.9 34.5 456.2 90C469.5 104.8 480.9 121.2 490.4 138.6C510.5 175.7 521.3 217.8 521.5 260.4C521.7 305.1 510.3 349.3 488.5 388.1C479.9 403.3 469.7 417.8 458.2 431C422 472.7 372.5 502.2 318.8 514C301.1 517.9 282.7 519.9 264.4 520" fill="#6d0dd6"/><path d="M490.8 580.7C481.4 563.3 469.9 546.9 456.7 532C407.5 476.7 336.9 445.1 263 445.3L263 520C364.2 519.6 446.8 601.5 447.2 702.8L447.2 703.9L521.9 703.9L521.9 702.4C521.7 659.9 511 617.8 490.8 580.7" fill="#004950"/><path d="M139.7 476.4C122.3 485.9 105.9 497.4 91 510.6C35.8 559.8 4.1 630.3 4.3 704.3L79 704.3C78.7 603 160.5 520.5 261.8 520L263 520L263 445.3L261.4 445.3C218.9 445.5 176.8 456.3 139.7 476.4" fill="#6bc9ed"/><path d="M521.9 705.5L521.9 703.9L447.2 703.9L447.2 705.1C446.8 806.4 364.2 888.2 263 887.9L263 962.6C336.9 962.8 407.5 931.1 456.7 875.9C469.9 861 481.4 844.6 490.8 827.2C511 790.1 521.7 748 521.9 705.5" fill="#f36d24"/><path d="M490.2 1022.5C480.7 1005.1 469.2 988.7 455.9 973.9C406.6 918.7 336 887.3 262 887.6L262.2 962.3C363.5 961.8 446.2 1043.4 446.9 1144.7L446.9 1145.9L521.6 1145.7L521.6 1144.2C521.3 1101.7 510.4 1059.6 490.2 1022.5" fill="#6d0dd6"/><path d="M477.7 384.9C487.2 402.3 498.7 418.7 511.9 433.5C561.1 488.8 631.6 520.5 705.6 520.3L705.6 445.6C604.3 445.9 521.8 364.1 521.3 262.8L521.3 261.6L446.6 261.6L446.6 263.1C446.8 305.7 457.6 347.8 477.7 384.9" fill="#fee387"/><path d="M828.8 489.1C846.3 479.7 862.7 468.2 877.5 455C932.8 405.8 964.4 335.3 964.3 261.3L889.5 261.3C889.9 362.6 808.1 445.1 706.7 445.6L705.6 445.6L705.6 520.2L707.1 520.2C749.6 520.1 791.7 509.3 828.8 489.1" fill="#6bc9ed"/><path d="M446.6 260.1L446.6 261.6L521.3 261.6L521.3 260.5C521.8 159.1 604.3 77.3 705.6 77.7L705.6 3C631.6 2.8 561.1 34.4 511.9 89.7C498.7 104.6 487.2 120.9 477.7 138.4C457.6 175.5 446.8 217.6 446.6 260.1" fill="#004950"/></svg>
+      <svg class="layer guide-corner" viewBox="0 0 170 170" aria-hidden="true"><g fill="none" stroke-width="34"><circle cx="0" cy="0" r="118" pathLength="360" stroke="#33007E" stroke-dasharray="30 330"/><circle cx="0" cy="0" r="118" pathLength="360" stroke="#6D0DD6" stroke-dasharray="30 330" stroke-dashoffset="-30"/><circle cx="0" cy="0" r="118" pathLength="360" stroke="#CAB8E5" stroke-dasharray="30 330" stroke-dashoffset="-60"/></g></svg>
+      <div class="content">
+        <div class="s-head">
+          <svg class="lockup-v" viewBox="0 46.5 109.5 120" role="img" aria-label="نادي التسويق، Marketing Club">
+            <use class="mk mk-solid" href="#mc-mark-path"/><g class="mk-grad"><use href="#mc-mark-grad"/></g>
+            <use class="wm" href="#mc-ar"/><use class="wm" href="#mc-en"/>
+          </svg>
+          <svg class="lockup-h" viewBox="0 126.5 169 44.5" role="img" aria-label="نادي التسويق، Marketing Club">
+            <use class="wm" href="#mc-ar"/><use class="wm" href="#mc-en"/>
+            <g transform="translate(107.2 95.95) scale(0.667)"><use href="#mc-mark-grad"/></g>
+          </svg>
+        </div>
+        <div class="s-body">
+          <div class="s-emblem-wrap">
+          <svg class="layer s-loop" viewBox="0 -40 1610 1190" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+            <defs>
+              <path id="loop-path" pathLength="1" d="M-3.1 1137.8C-3.1 1137.8 644.2 1137.4 611.6 529.7C594.4 207.4 250.4 352.2 431 587.4C592.1 797.2 1159 888.1 1403.7 539.5C1603.7 254.6 1490.5 -8.8 1490.5 -8.8"/>
+              <mask id="loop-reveal" maskUnits="userSpaceOnUse" x="-100" y="-100" width="1810" height="1400">
+                <use class="loop-reveal" href="#loop-path" fill="none" stroke="#fff" stroke-width="60" stroke-linecap="round"/>
+              </mask>
+            </defs>
+            <path class="loop-solid" pathLength="1" d="M-3.1 1137.8C-3.1 1137.8 644.2 1137.4 611.6 529.7C594.4 207.4 250.4 352.2 431 587.4C592.1 797.2 1159 888.1 1403.7 539.5C1603.7 254.6 1490.5 -8.8 1490.5 -8.8"/>
+            <g class="loop-colour" mask="url(#loop-reveal)" fill="none" stroke-width="47.4" stroke-linecap="butt"><use href="#loop-path" stroke="#a4dced" stroke-dasharray="0.0151 2" stroke-dashoffset="0.0000"/><use href="#loop-path" stroke="#9bd7e9" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.0111"/><use href="#loop-path" stroke="#92d2e5" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.0222"/><use href="#loop-path" stroke="#89cde2" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.0333"/><use href="#loop-path" stroke="#80c8de" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.0444"/><use href="#loop-path" stroke="#76c0d5" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.0556"/><use href="#loop-path" stroke="#6bb6c8" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.0667"/><use href="#loop-path" stroke="#5facbb" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.0778"/><use href="#loop-path" stroke="#54a2ae" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.0889"/><use href="#loop-path" stroke="#4998a1" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1000"/><use href="#loop-path" stroke="#3e8e94" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1111"/><use href="#loop-path" stroke="#307f85" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1222"/><use href="#loop-path" stroke="#237076" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1333"/><use href="#loop-path" stroke="#156167" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1444"/><use href="#loop-path" stroke="#085258" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1556"/><use href="#loop-path" stroke="#044553" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1667"/><use href="#loop-path" stroke="#0d3b59" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1778"/><use href="#loop-path" stroke="#163260" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.1889"/><use href="#loop-path" stroke="#1f2966" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2000"/><use href="#loop-path" stroke="#281f6d" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2111"/><use href="#loop-path" stroke="#311b78" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2222"/><use href="#loop-path" stroke="#391986" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2333"/><use href="#loop-path" stroke="#421794" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2444"/><use href="#loop-path" stroke="#4b15a1" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2556"/><use href="#loop-path" stroke="#5413af" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2667"/><use href="#loop-path" stroke="#5c11bc" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2778"/><use href="#loop-path" stroke="#650fca" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.2889"/><use href="#loop-path" stroke="#6c0dd5" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3000"/><use href="#loop-path" stroke="#650cc9" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3111"/><use href="#loop-path" stroke="#5d0cbd" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3222"/><use href="#loop-path" stroke="#560bb1" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3333"/><use href="#loop-path" stroke="#4f0aa6" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3444"/><use href="#loop-path" stroke="#4e0ba4" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3556"/><use href="#loop-path" stroke="#5b0db5" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3667"/><use href="#loop-path" stroke="#670fc5" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3778"/><use href="#loop-path" stroke="#7311d6" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.3889"/><use href="#loop-path" stroke="#7510d9" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4000"/><use href="#loop-path" stroke="#690cc7" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4111"/><use href="#loop-path" stroke="#5d07b5" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4222"/><use href="#loop-path" stroke="#5102a3" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4333"/><use href="#loop-path" stroke="#470095" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4444"/><use href="#loop-path" stroke="#3f008d" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4556"/><use href="#loop-path" stroke="#380084" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4667"/><use href="#loop-path" stroke="#370089" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4778"/><use href="#loop-path" stroke="#4300ac" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.4889"/><use href="#loop-path" stroke="#4f00cf" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5000"/><use href="#loop-path" stroke="#5a00f2" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5111"/><use href="#loop-path" stroke="#6102fa" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5222"/><use href="#loop-path" stroke="#6404f1" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5333"/><use href="#loop-path" stroke="#6607e9" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5444"/><use href="#loop-path" stroke="#690ae1" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5556"/><use href="#loop-path" stroke="#6c0cd8" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5667"/><use href="#loop-path" stroke="#7e1cc0" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5778"/><use href="#loop-path" stroke="#9631a1" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.5889"/><use href="#loop-path" stroke="#b0467f" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6000"/><use href="#loop-path" stroke="#ce5856" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6111"/><use href="#loop-path" stroke="#ec6a2c" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6222"/><use href="#loop-path" stroke="#f3752a" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6333"/><use href="#loop-path" stroke="#f47e32" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6444"/><use href="#loop-path" stroke="#f58839" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6556"/><use href="#loop-path" stroke="#f59241" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6667"/><use href="#loop-path" stroke="#f69b49" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6778"/><use href="#loop-path" stroke="#f7a551" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.6889"/><use href="#loop-path" stroke="#f9af5a" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7000"/><use href="#loop-path" stroke="#faba63" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7111"/><use href="#loop-path" stroke="#fbc46c" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7222"/><use href="#loop-path" stroke="#fdcf75" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7333"/><use href="#loop-path" stroke="#fed97e" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7444"/><use href="#loop-path" stroke="#ffe285" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7556"/><use href="#loop-path" stroke="#ffdf7e" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7667"/><use href="#loop-path" stroke="#ffdd76" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7778"/><use href="#loop-path" stroke="#ffda6f" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.7889"/><use href="#loop-path" stroke="#ffd768" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8000"/><use href="#loop-path" stroke="#ffd561" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8111"/><use href="#loop-path" stroke="#f1d87d" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8222"/><use href="#loop-path" stroke="#dbdeaf" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8333"/><use href="#loop-path" stroke="#c5e4e1" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8444"/><use href="#loop-path" stroke="#b4e1ec" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8556"/><use href="#loop-path" stroke="#a4d9e7" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8667"/><use href="#loop-path" stroke="#95d2e3" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8778"/><use href="#loop-path" stroke="#86cbdf" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.8889"/><use href="#loop-path" stroke="#77c1d6" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9000"/><use href="#loop-path" stroke="#69b5c6" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9111"/><use href="#loop-path" stroke="#5ba8b5" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9222"/><use href="#loop-path" stroke="#4d9ba5" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9333"/><use href="#loop-path" stroke="#3f8f95" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9444"/><use href="#loop-path" stroke="#317c82" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9556"/><use href="#loop-path" stroke="#23696f" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9667"/><use href="#loop-path" stroke="#15565c" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9778"/><use href="#loop-path" stroke="#074349" stroke-dasharray="0.0151 2" stroke-dashoffset="-0.9889"/></g>
+          </svg>
+          <div class="s-emblem">
+            <svg viewBox="0 0 112 112" aria-hidden="true">
+              <circle class="ring" cx="56" cy="56" r="49"/>
+              <circle class="disc" cx="56" cy="56" r="31"/>
+              <svg class="ico" x="38" y="38" width="36" height="36" viewBox="0 0 24 24"><use href="#i-check"/></svg>
+            </svg>
+          </div>
+          </div>
+          <h2 class="s-title" id="s4-title" tabindex="-1">وصلنا ردك يا <span data-out="firstName">مبدع</span>!</h2>
+          <p class="s-desc">
+            طلبك الحين عند فريق نادي التسويق، ونراجع كل المشاركات بحماس.
+            <span data-out="contact">راح نتواصل معك على رقم جوالك أول ما نراجع طلبك.</span>
+          </p>
+        </div>
+      </div>
+      <div class="s-actions">
+        <a class="btn btn-wide btn-p" data-link="telegram" href="#"><svg class="ico" aria-hidden="true"><use href="#i-send"/></svg>انضم لمجتمعنا على تيليجرام</a>
+        <a class="btn btn-wide btn-s" data-link="x" href="#"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg>تابع حساب النادي في X</a>
+        <p class="s-note" role="status"></p>
+        <button type="button" class="s-link" data-again>تسجيل طلب جديد</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========== الشاشة 5: التسجيل مغلق ========== -->
+  <section id="screen-5" class="screen-container" aria-labelledby="s5-title" hidden>
+    <div class="frame s-frame t-deep" data-state-frame>
+      <svg class="layer circles-art" viewBox="0 0 968 975" aria-hidden="true"><path d="M705.8 746.4C729.3 746.3 748.2 727.2 748.1 703.8C748 680.3 728.9 661.4 705.4 661.5C681.9 661.6 663 680.7 663.1 704.2C663.3 727.6 682.4 746.5 705.8 746.4M705.1 586.6C769.8 586.3 822.7 638.7 823 703.4C823.4 768.1 771 821 706.2 821.3C641.9 821.6 589.3 769.9 588.3 705.7L587.8 705.7L587.8 704.5L588.3 704.5C588 639.8 640.4 586.9 705.1 586.6" fill="#6d0dd6"/><path d="M522 704.8C522.5 806.3 605.1 888.1 706.5 887.6C808 887.1 889.8 804.5 889.3 703.1C888.8 601.6 806.2 519.8 704.8 520.3C603.3 520.8 521.5 603.4 522 704.8M704.5 450.3C729.8 450.1 754.3 453.7 777.5 460.6L777.5 460.6C840.5 479.1 893.4 521.6 925.6 577.4C946.9 614.3 959.1 657.1 959.4 702.7C959.6 746.1 948.9 787 929.9 822.8C887.5 902.6 803.6 957.2 706.9 957.6C631 958 562.8 925 516.1 872.5C503.1 857.9 491.9 841.9 482.5 824.7C463.2 789.1 452.2 748.5 452 705.2C451.8 659.6 463.6 616.8 484.4 579.8C492.9 564.7 502.8 550.6 514.1 537.6C549.2 497.3 596.8 468.1 650.9 456.2C668.2 452.4 686.1 450.3 704.5 450.3" fill="#6d0dd6"/><path d="M776.1 465.1C753 458.2 728.9 454.8 704.5 455C686.8 455 669.1 457 652 460.8C600.3 472.1 552.6 500.5 517.6 540.7C506.6 553.5 496.8 567.4 488.5 582.1C467.5 619.4 456.5 662 456.7 705.1C456.9 746.1 467.3 786.7 486.7 822.5C495.8 839.3 506.8 855 519.6 869.4C567.1 922.8 635.4 953.3 706.9 952.9C798.7 952.5 882.6 901.8 925.7 820.6C944.9 784.6 954.9 743.8 954.7 702.7C954.5 659.5 943 617 921.6 579.8C889.5 524.1 838.1 483.5 776.8 465.2L776.1 465.1M704.4 445.6C729.5 445.4 754.3 448.9 778.1 455.9L778.8 456.1C842.7 474.9 896.3 517.2 929.7 575.1C952 613.7 963.9 657.8 964.1 702.7C964.3 745.3 953.9 787.6 934 825C889.3 909.2 802.3 961.9 706.9 962.3C632.7 962.7 561.9 931.1 512.6 875.6C499.3 860.8 487.8 844.4 478.4 827C458.3 789.8 447.5 747.7 447.3 705.2C447.1 660.4 458.5 616.3 480.3 577.5C488.9 562.2 499.1 547.8 510.5 534.6C546.8 492.9 596.3 463.4 649.9 451.6C667.7 447.7 686.1 445.6 704.4 445.6" fill="#6d0dd6"/><path d="M263 219.2C239.5 219.3 220.6 238.4 220.7 261.8C220.8 285.3 239.9 304.2 263.4 304.1C286.8 304 305.8 284.9 305.6 261.4C305.5 238 286.4 219 263 219.2M263.7 379C199 379.3 146.1 326.9 145.7 262.2C145.4 197.5 197.8 144.6 262.5 144.2C326.9 143.9 379.5 195.7 380.5 259.9L380.9 259.9L380.9 261.1L380.5 261.1C380.8 325.8 328.4 378.7 263.7 379" fill="#6d0dd6"/><path d="M446.8 260.7C446.3 159.3 363.7 77.5 262.3 78C160.8 78.4 79 161.1 79.5 262.5C80 363.9 162.6 445.8 264 445.3C365.5 444.8 447.3 362.2 446.8 260.7M264.3 515.3C239 515.4 214.5 511.8 191.3 505L191.3 505C128.3 486.4 75.4 444 43.2 388.1C21.9 351.2 9.6 308.5 9.4 262.9C9.2 219.5 19.9 178.6 38.9 142.8C81.3 63 165.1 8.4 261.9 7.9C337.7 7.6 406 40.5 452.7 93.1C465.7 107.6 476.9 123.6 486.3 140.9C505.6 176.4 516.6 217.1 516.8 260.4C517 305.9 505.2 348.7 484.4 385.8C475.9 400.8 466 415 454.7 427.9C419.6 468.3 372 497.5 317.8 509.4C300.6 513.2 282.7 515.2 264.3 515.3" fill="#6d0dd6"/><path d="M192.7 500.5C215.8 507.3 239.9 510.7 264.3 510.6C282 510.5 299.7 508.6 316.8 504.8C368.5 493.4 416.2 465 451.1 424.8C462.2 412.1 472 398.2 480.3 383.5C501.3 346.1 512.3 303.6 512.1 260.4C511.9 219.4 501.5 178.9 482.1 143.1C473 126.3 461.9 110.5 449.2 96.2C401.7 42.8 333.4 12.3 261.9 12.6C170 13.1 86.2 63.8 43.1 145C23.9 181 13.9 221.8 14.1 262.8C14.3 306.1 25.8 348.6 47.2 385.8C79.3 441.4 130.7 482.1 192 500.3L192.7 500.5M264.4 520C239.3 520.1 214.5 516.7 190.7 509.7L190 509.5C126.1 490.7 72.5 448.4 39.1 390.5C16.8 351.9 4.9 307.7 4.7 262.9C4.5 220.3 14.9 178 34.7 140.6C79.5 56.3 166.5 3.7 261.9 3.2C336.1 2.9 406.9 34.5 456.2 90C469.5 104.8 480.9 121.2 490.4 138.6C510.5 175.7 521.3 217.8 521.5 260.4C521.7 305.1 510.3 349.3 488.5 388.1C479.9 403.3 469.7 417.8 458.2 431C422 472.7 372.5 502.2 318.8 514C301.1 517.9 282.7 519.9 264.4 520" fill="#6d0dd6"/><path d="M490.8 580.7C481.4 563.3 469.9 546.9 456.7 532C407.5 476.7 336.9 445.1 263 445.3L263 520C364.2 519.6 446.8 601.5 447.2 702.8L447.2 703.9L521.9 703.9L521.9 702.4C521.7 659.9 511 617.8 490.8 580.7" fill="#004950"/><path d="M139.7 476.4C122.3 485.9 105.9 497.4 91 510.6C35.8 559.8 4.1 630.3 4.3 704.3L79 704.3C78.7 603 160.5 520.5 261.8 520L263 520L263 445.3L261.4 445.3C218.9 445.5 176.8 456.3 139.7 476.4" fill="#6bc9ed"/><path d="M521.9 705.5L521.9 703.9L447.2 703.9L447.2 705.1C446.8 806.4 364.2 888.2 263 887.9L263 962.6C336.9 962.8 407.5 931.1 456.7 875.9C469.9 861 481.4 844.6 490.8 827.2C511 790.1 521.7 748 521.9 705.5" fill="#f36d24"/><path d="M490.2 1022.5C480.7 1005.1 469.2 988.7 455.9 973.9C406.6 918.7 336 887.3 262 887.6L262.2 962.3C363.5 961.8 446.2 1043.4 446.9 1144.7L446.9 1145.9L521.6 1145.7L521.6 1144.2C521.3 1101.7 510.4 1059.6 490.2 1022.5" fill="#6d0dd6"/><path d="M477.7 384.9C487.2 402.3 498.7 418.7 511.9 433.5C561.1 488.8 631.6 520.5 705.6 520.3L705.6 445.6C604.3 445.9 521.8 364.1 521.3 262.8L521.3 261.6L446.6 261.6L446.6 263.1C446.8 305.7 457.6 347.8 477.7 384.9" fill="#fee387"/><path d="M828.8 489.1C846.3 479.7 862.7 468.2 877.5 455C932.8 405.8 964.4 335.3 964.3 261.3L889.5 261.3C889.9 362.6 808.1 445.1 706.7 445.6L705.6 445.6L705.6 520.2L707.1 520.2C749.6 520.1 791.7 509.3 828.8 489.1" fill="#6bc9ed"/><path d="M446.6 260.1L446.6 261.6L521.3 261.6L521.3 260.5C521.8 159.1 604.3 77.3 705.6 77.7L705.6 3C631.6 2.8 561.1 34.4 511.9 89.7C498.7 104.6 487.2 120.9 477.7 138.4C457.6 175.5 446.8 217.6 446.6 260.1" fill="#004950"/></svg>
+      <svg class="layer guide-corner" viewBox="0 0 170 170" aria-hidden="true"><g fill="none" stroke-width="34"><circle cx="0" cy="0" r="118" pathLength="360" stroke="#33007E" stroke-dasharray="30 330"/><circle cx="0" cy="0" r="118" pathLength="360" stroke="#6D0DD6" stroke-dasharray="30 330" stroke-dashoffset="-30"/><circle cx="0" cy="0" r="118" pathLength="360" stroke="#CAB8E5" stroke-dasharray="30 330" stroke-dashoffset="-60"/></g></svg>
+      <div class="content">
+        <div class="s-head">
+          <svg class="lockup-v" viewBox="0 46.5 109.5 120" role="img" aria-label="نادي التسويق، Marketing Club">
+            <use class="mk mk-solid" href="#mc-mark-path"/><g class="mk-grad"><use href="#mc-mark-grad"/></g>
+            <use class="wm" href="#mc-ar"/><use class="wm" href="#mc-en"/>
+          </svg>
+          <svg class="lockup-h" viewBox="0 126.5 169 44.5" role="img" aria-label="نادي التسويق، Marketing Club">
+            <use class="wm" href="#mc-ar"/><use class="wm" href="#mc-en"/>
+            <g transform="translate(107.2 95.95) scale(0.667)"><use href="#mc-mark-grad"/></g>
+          </svg>
+        </div>
+        <div class="s-body">
+          <div class="s-emblem">
+            <svg viewBox="0 0 112 112" aria-hidden="true">
+              <g transform="rotate(-90 56 56)">
+                <circle class="seg-arc" cx="56" cy="56" r="49" pathLength="300" stroke="var(--seg1)" stroke-dasharray="96 204" stroke-dashoffset="0"/>
+                <circle class="seg-arc" cx="56" cy="56" r="49" pathLength="300" stroke="var(--seg2)" stroke-dasharray="96 204" stroke-dashoffset="-100"/>
+                <circle class="seg-arc" cx="56" cy="56" r="49" pathLength="300" stroke="var(--seg3)" stroke-dasharray="96 204" stroke-dashoffset="-200"/>
+              </g>
+              <circle class="disc" cx="56" cy="56" r="31"/>
+              <svg class="ico" x="38" y="38" width="36" height="36" viewBox="0 0 24 24"><use href="#i-lock"/></svg>
+            </svg>
+          </div>
+          <h2 class="s-title" id="s5-title" tabindex="-1">تم إغلاق التسجيل!</h2>
+          <p class="s-desc">اكتمل العدد المطلوب لهذه الفترة. شكراً لاهتمامكم الكبير، ورحلتنا مستمرة دائماً.</p>
+          <div class="s-note-card">
+            <h3>ما فاتك شيء!</h3>
+            <p>فعالياتنا، ورش العمل، وفترات التسجيل القادمة يُعلن عنها أولاً بأول عبر قنواتنا الرسمية.</p>
+          </div>
+        </div>
+      </div>
+      <div class="s-actions">
+        <a class="btn btn-wide btn-p" data-link="x" href="#"><svg class="ico" aria-hidden="true"><use href="#i-x"/></svg>تابع جديدنا على منصة X</a>
+        <p class="s-note" role="status"></p>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    (() => {
+      // عبّها لاحقاً: endpoint يستقبل الطلب (POST JSON)، فاضي = معاينة بدون إرسال فعلي
+      const SB = {
+        url: 'https://dizepmkzwckfiundcqdh.supabase.co',
+        key: 'sb_publishable_wmA5To-60hNo_5L4Rc4YbA_L8of88n_',
+        // اختياري: رابط الفورم يحدد النموذج، مثل index.html?form=<id>. بدونه يُستخدم أحدث فورم
+        formId: new URLSearchParams(location.search).get('form') || ''
+      };
+      const CONFIG = {
+        endpoint: '',
+        telegram: '',
+        x: ''
+      };
+
+      const FIELDS = ['name', 'studentId', 'mobile'];
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // ---------- تطبيع المدخلات ----------
+      const toLatinDigits = (s) => s
+        .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+        .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
+      const cleanName = (v) => v.trim().replace(/\s+/g, ' ');
+      const cleanId = (v) => toLatinDigits(v).replace(/\s/g, '');
+      const cleanMobile = (v) => {
+        let s = toLatinDigits(v).replace(/[\s\-()]/g, '');
+        if (s.startsWith('+966')) s = '0' + s.slice(4);
+        else if (s.startsWith('00966')) s = '0' + s.slice(5);
+        else if (s.startsWith('966')) s = '0' + s.slice(3);
+        else if (/^5\d{8}$/.test(s)) s = '0' + s;
+        return s;
+      };
+
+      const validators = {
+        name: (form) => {
+          const v = cleanName(form.elements.name.value);
+          if (!v) return 'اكتب اسمك الثلاثي';
+          if (v.split(' ').length < 3) return 'نحتاج الاسم الثلاثي كامل: اسمك، اسم الأب، والعائلة';
+          return '';
+        },
+        studentId: (form) => {
+          const v = cleanId(form.elements.studentId.value);
+          if (!v) return 'اكتب رقمك الجامعي';
+          if (!/^\d+$/.test(v)) return 'الرقم الجامعي أرقام فقط';
+          if (v.length < 6 || v.length > 10) return 'تأكد من الرقم الجامعي، يبدو ناقص أو زايد';
+          return '';
+        },
+        mobile: (form) => {
+          const v = cleanMobile(form.elements.mobile.value);
+          if (!v) return 'اكتب رقم جوالك عشان نقدر نتواصل معك';
+          if (!/^05\d{8}$/.test(v)) return 'رقم الجوال لازم يبدأ بـ 05 ويتكوّن من 10 أرقام';
+          return '';
+        }
+      };
+
+      const fieldWrap = (form, f) => form.querySelector(`[data-field="${f}"]`);
+
+      function showError(form, f, msg) {
+        const wrap = fieldWrap(form, f);
+        if (!wrap) return;
+        wrap.classList.toggle('has-error', !!msg);
+        wrap.querySelector('.err').textContent = msg;
+        wrap.querySelector('input').setAttribute('aria-invalid', msg ? 'true' : 'false');
+      }
+
+      function validate(form, fields) {
+        const failed = fields.filter((f) => {
+          const msg = validators[f](form);
+          showError(form, f, msg);
+          return !!msg;
+        });
+        if (failed.length) fieldWrap(form, failed[0]).querySelector('input').focus();
+        return failed.length === 0;
+      }
+
+      const collect = (form) => ({
+        name: cleanName(form.elements.name.value),
+        studentId: cleanId(form.elements.studentId.value),
+        mobile: cleanMobile(form.elements.mobile.value)
+      });
+      const collectRaw = (form) => ({
+        name: form.elements.name.value,
+        studentId: form.elements.studentId.value,
+        mobile: form.elements.mobile.value
+      });
+      function applyRaw(form, d) {
+        FIELDS.forEach((f) => { form.elements[f].value = d[f] || ''; });
+      }
+      function clearErrors(form) {
+        FIELDS.forEach((f) => showError(form, f, ''));
+        form.querySelector('.form-alert').hidden = true;
+      }
+
+      // ---------- حفظ المسودة ----------
+      const draftKey = (form) => 'mc-draft-' + form.id;
+      function saveDraft(form) {
+        try { localStorage.setItem(draftKey(form), JSON.stringify(collectRaw(form))); } catch (e) { /* التخزين غير متاح */ }
+      }
+      function restoreDraft(form) {
+        try {
+          const raw = localStorage.getItem(draftKey(form));
+          if (raw) applyRaw(form, JSON.parse(raw));
+        } catch (e) { /* تجاهل */ }
+      }
+      function clearDraft(form) {
+        try { localStorage.removeItem(draftKey(form)); } catch (e) { /* تجاهل */ }
+      }
+
+      // ---------- حلقة الاكتمال (تصميم الدوائر) ----------
+      const f2 = document.getElementById('f2');
+      const ringSegs = [...f2.querySelectorAll('.seg-arc')];
+      const ringCount = f2.querySelector('.count');
+      const ringText = f2.querySelector('[data-progress-text]');
+      let lastCount = 0;
+      function updateRing() {
+        const done = FIELDS.filter((f) => !validators[f](f2)).length;
+        ringSegs.forEach((s, i) => s.classList.toggle('on', i < done));
+        ringCount.textContent = `${done}/3`;
+        if (done !== lastCount) {
+          ringText.textContent = `اكتمل ${done} من 3`;
+          lastCount = done;
+        }
+      }
+
+      // ---------- ارتفاع شريط المعاينة فوق الشاشة (للجوال) ----------
+      const chromeEls = [document.querySelector('.harness-head'), document.querySelector('.preview-nav'), document.getElementById('state-theme')];
+      function measureChrome() {
+        const h = chromeEls.reduce((s, el) => s + (el && !el.hidden ? el.getBoundingClientRect().height : 0), 0);
+        document.documentElement.style.setProperty('--chrome-h', Math.ceil(h) + 'px');
+      }
+      window.addEventListener('resize', measureChrome);
+
+      // ---------- التبديل بين الشاشات ----------
+      const screens = [...document.querySelectorAll('.screen-container')];
+      const navBtns = [...document.querySelectorAll('.nav-btn')];
+      const themeBar = document.getElementById('state-theme');
+      const themeBtns = [...themeBar.querySelectorAll('[data-theme-set]')];
+      let lastFormScreen = 'screen-1';
+
+      function setStateTheme(theme) {
+        document.querySelectorAll('[data-state-frame]').forEach((f) => {
+          f.classList.remove('t-deep', 't-circles', 't-guide');
+          f.classList.add('t-' + theme);
+        });
+        themeBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.themeSet === theme)));
+      }
+
+      function showScreen(id, { focus = false } = {}) {
+        screens.forEach((s) => {
+          const on = s.id === id;
+          s.hidden = !on;
+          s.classList.toggle('active-screen', on);
+        });
+        navBtns.forEach((b) => {
+          const on = b.dataset.target === id;
+          b.classList.toggle('active', on);
+          b.setAttribute('aria-pressed', String(on));
+          if (on) {
+            const nav = b.parentElement;
+            const nr = nav.getBoundingClientRect();
+            const br = b.getBoundingClientRect();
+            nav.scrollBy({ left: (br.left + br.width / 2) - (nr.left + nr.width / 2), behavior: reduceMotion ? 'auto' : 'smooth' });
+          }
+        });
+        const form = document.querySelector(`#${id} form`);
+        if (form) {
+          lastFormScreen = id;
+          setStateTheme(form.dataset.theme);
+        }
+        themeBar.hidden = !!form;
+        measureChrome();
+        if (focus) {
+          window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+          const target = document.querySelector(`#${id} .s-title`) || document.querySelector(`#${id} input`);
+          if (target) target.focus({ preventScroll: true });
+        }
+      }
+
+      navBtns.forEach((b) => b.addEventListener('click', () => showScreen(b.dataset.target)));
+      themeBtns.forEach((b) => b.addEventListener('click', () => setStateTheme(b.dataset.themeSet)));
+
+      // ---------- شاشة النجاح ----------
+      function fillSuccess(data) {
+        const out = (k) => document.querySelector(`#screen-4 [data-out="${k}"]`);
+        out('firstName').textContent = data.name.split(' ')[0];
+        const contact = out('contact');
+        contact.textContent = 'راح نتواصل معك على ';
+        const num = document.createElement('bdi');
+        num.dir = 'ltr';
+        num.textContent = data.mobile;
+        contact.append(num, ' أول ما نراجع طلبك.');
+      }
+
+      document.querySelectorAll('[data-link]').forEach((a) => {
+        const url = CONFIG[a.dataset.link];
+        if (url) {
+          a.href = url;
+          a.target = '_blank';
+          a.rel = 'noopener';
+        } else {
+          a.removeAttribute('href');
+          a.setAttribute('role', 'link');
+          a.setAttribute('aria-disabled', 'true');
+          a.classList.add('is-pending');
+          const soon = document.createElement('span');
+          soon.className = 'soon';
+          soon.textContent = 'قريباً';
+          a.append(soon);
+        }
+      });
+
+      document.querySelector('[data-again]').addEventListener('click', () => {
+        document.querySelectorAll('.s-note').forEach((n) => { n.textContent = ''; });
+        showScreen(lastFormScreen, { focus: true });
+      });
+
+      // ---------- الإرسال ----------
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+      // ---------- الاتصال بـ Supabase ----------
+      const formState = { id: null, qmap: {} };
+
+      async function sbGet(path) {
+        const r = await fetch(SB.url + '/rest/v1/' + path, { headers: { apikey: SB.key } });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      }
+
+      // يقرأ الفورم وأسئلته، ويربط الحقول الثلاثة بالأسئلة حسب ترتيبها (position 1, 2, 3)
+      async function loadForm() {
+        if (!SB.url || !SB.key) return;
+        try {
+          const pick = SB.formId ? 'id=eq.' + encodeURIComponent(SB.formId) : 'order=created_at.desc&limit=1';
+          const [f] = await sbGet('forms?select=id,title,opens_at,closes_at&' + pick);
+          if (!f) return;
+          formState.id = f.id;
+          const qs = await sbGet('form_questions?select=id,position&form_id=eq.' + f.id + '&order=position');
+          FIELDS.forEach((k, i) => { if (qs[i]) formState.qmap[k] = qs[i].id; });
+          const now = Date.now();
+          const closed = (f.opens_at && now < Date.parse(f.opens_at)) || (f.closes_at && now > Date.parse(f.closes_at));
+          if (closed && !location.hash) showScreen('screen-5');
+        } catch (e) { /* نبقي الصفحة تعمل، والإرسال سيعرض رسالة الخطأ */ }
+      }
+
+      async function submitToSupabase(data) {
+        if (!formState.id) throw new Error('form not loaded');
+        const answers = FIELDS.filter((k) => formState.qmap[k]).map((k) => ({ question_id: formState.qmap[k], value: data[k] }));
+        const res = await fetch(SB.url + '/rest/v1/rpc/submit_form', {
+          method: 'POST',
+          headers: { apikey: SB.key, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ p_form_id: formState.id, p_answers: answers })
+        });
+        if (!res.ok) {
+          let msg = '';
+          try { msg = (await res.json()).message || ''; } catch (_) { /* تجاهل */ }
+          const err = new Error(msg || 'HTTP ' + res.status);
+          if (msg.includes('form_closed')) err.code = 'form_closed';
+          throw err;
+        }
+      }
+
+      function setLoading(form, on) {
+        const btn = form.querySelector('.btn-submit');
+        const label = btn.querySelector('.btn-label');
+        if (on) {
+          btn.dataset.label = label.textContent;
+          label.textContent = 'جاري الإرسال…';
+        } else if (btn.dataset.label) {
+          label.textContent = btn.dataset.label;
+        }
+        btn.disabled = on;
+        btn.classList.toggle('is-loading', on);
+        form.setAttribute('aria-busy', String(on));
+      }
+
+      async function send(form) {
+        if (!validate(form, FIELDS)) return;
+        const data = collect(form);
+        const alertBox = form.querySelector('.form-alert');
+        alertBox.hidden = true;
+        setLoading(form, true);
+        try {
+          if (SB.url && SB.key) {
+            await submitToSupabase(data);
+          } else if (CONFIG.endpoint) {
+            const res = await fetch(CONFIG.endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+          } else {
+            await wait(800);
+          }
+        } catch (e) {
+          setLoading(form, false);
+          if (e.code === 'form_closed') { showScreen('screen-5', { focus: true }); return; }
+          alertBox.querySelector('span').textContent = 'ما قدرنا نرسل طلبك. تأكد من اتصالك وحاول مرة ثانية، بياناتك محفوظة.';
+          alertBox.hidden = false;
+          return;
+        }
+        setLoading(form, false);
+        fillSuccess(data);
+        clearDraft(form);
+        form.reset();
+        clearErrors(form);
+        if (form === f2) updateRing();
+        if (form.id === 'f3') goStep(0, false);
+        showScreen('screen-4', { focus: true });
+        setStateTheme(form.dataset.theme);
+      }
+
+      // ---------- سلوك مشترك لكل نموذج ----------
+      const forms = [...document.querySelectorAll('form')];
+      forms.forEach((form) => {
+        restoreDraft(form);
+
+        form.addEventListener('input', (e) => {
+          const wrap = e.target.closest('[data-field]');
+          if (wrap && wrap.classList.contains('has-error')) {
+            showError(form, wrap.dataset.field, validators[wrap.dataset.field](form));
+          }
+          if (form === f2) updateRing();
+          saveDraft(form);
+        });
+
+        form.addEventListener('focusout', (e) => {
+          const wrap = e.target.closest('[data-field]');
+          if (!wrap || !e.target.value.trim()) return;
+          showError(form, wrap.dataset.field, validators[wrap.dataset.field](form));
+        });
+
+        if (form.id !== 'f3') {
+          form.addEventListener('submit', (e) => { e.preventDefault(); send(form); });
+        }
+      });
+      updateRing();
+      measureChrome();
+
+      // ---------- خطوات تصميم الدليل ----------
+      const f3 = document.getElementById('f3');
+      const panels = [...f3.querySelectorAll('.g-panel')];
+      const stepEls = [...f3.querySelectorAll('.g-step')];
+      const progressLine = f3.querySelector('.g-progress');
+      const stepText = f3.querySelector('[data-step-text]');
+      const stepFields = [['name', 'studentId'], ['mobile'], []];
+      const nextLabels = ['التالي', 'مراجعة الطلب', 'إرسال الطلب'];
+      const backBtn = f3.querySelector('.g-back');
+      const nextBtn = f3.querySelector('.btn-submit');
+      const undoBar = f3.querySelector('.g-undo-bar');
+      let current = 0;
+      let undoSnapshot = null;
+      let undoTimer = null;
+
+      function renderReview() {
+        const d = collect(f3);
+        FIELDS.forEach((k) => { f3.querySelector(`[data-review="${k}"]`).textContent = d[k]; });
+      }
+
+      function goStep(i, focus = true) {
+        current = i;
+        panels.forEach((p, k) => { p.hidden = k !== i; });
+        stepEls.forEach((s, k) => {
+          s.classList.toggle('done', k < i);
+          s.classList.toggle('current', k === i);
+          if (k === i) s.setAttribute('aria-current', 'step'); else s.removeAttribute('aria-current');
+        });
+        progressLine.style.width = ['0%', '41%', '74%'][i];
+        stepText.textContent = `خطوة ${i + 1} من 3`;
+        backBtn.textContent = i === 0 ? 'إلغاء' : 'رجوع';
+        nextBtn.querySelector('.btn-label').textContent = nextLabels[i];
+        nextBtn.querySelector('.btn-ico').style.display = i === 2 ? 'none' : '';
+        if (i === 2) renderReview();
+        if (focus) panels[i].querySelector('.g-panel-title').focus();
+      }
+
+      f3.addEventListener('submit', (e) => {
+        e.preventDefault();
+        if (current < 2) {
+          if (validate(f3, stepFields[current])) goStep(current + 1);
+        } else {
+          send(f3);
+        }
+      });
+
+      backBtn.addEventListener('click', () => {
+        if (current > 0) { goStep(current - 1); return; }
+        undoSnapshot = collectRaw(f3);
+        f3.reset();
+        clearErrors(f3);
+        clearDraft(f3);
+        undoBar.hidden = false;
+        clearTimeout(undoTimer);
+        undoTimer = setTimeout(() => { undoBar.hidden = true; }, 8000);
+      });
+
+      f3.querySelector('.g-undo').addEventListener('click', () => {
+        if (undoSnapshot) applyRaw(f3, undoSnapshot);
+        saveDraft(f3);
+        undoBar.hidden = true;
+        f3.elements.name.focus();
+      });
+
+      f3.querySelectorAll('[data-goto]').forEach((b) => b.addEventListener('click', () => goStep(Number(b.dataset.goto))));
+
+      loadForm();
+
+      // فتح شاشة مباشرة من الرابط، مثل index.html#screen-4
+      const fromHash = location.hash.slice(1);
+      if (fromHash.startsWith('screen-') && document.getElementById(fromHash)) showScreen(fromHash);
+    })();
+  </script>
+</body>
+</html>
